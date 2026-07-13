@@ -1870,6 +1870,9 @@ function MBSEBuilder() {
 
   // Renderers
   const rNarrative = () => {
+    if (loading) return /*#__PURE__*/React.createElement(PH, {
+      t: "Generating… this may take 30-60 seconds"
+    });
     if (!parsed) return /*#__PURE__*/React.createElement(PH, {
       t: "Select module \xB7 Configure scenario \xB7 Click GENERATE"
     });
@@ -1929,6 +1932,9 @@ function MBSEBuilder() {
     }, parsed.dq)));
   };
   const rStpa = () => {
+    if (loading) return /*#__PURE__*/React.createElement(PH, {
+      t: "Generating… this may take 30–60 seconds"
+    });
     if (!parsed || parsed.error) return /*#__PURE__*/React.createElement(PH, {
       t: "Generate a scenario first"
     });
@@ -1969,6 +1975,9 @@ function MBSEBuilder() {
     }, parsed.stpa));
   };
   const rDiagrams = () => {
+    if (loading) return /*#__PURE__*/React.createElement(PH, {
+      t: "Generating… this may take 30–60 seconds"
+    });
     if (!parsed || parsed.error) return /*#__PURE__*/React.createElement(PH, {
       t: "Generate a scenario first"
     });
@@ -2033,6 +2042,9 @@ function MBSEBuilder() {
     }, parsed.bdd)));
   };
   const rMitre = () => {
+    if (loading) return /*#__PURE__*/React.createElement(PH, {
+      t: "Generating… this may take 30–60 seconds"
+    });
     if (!parsed || parsed.error) return /*#__PURE__*/React.createElement(PH, {
       t: "Generate a scenario first"
     });
@@ -2137,6 +2149,9 @@ function MBSEBuilder() {
     }, "// Import IDs into attack.mitre.org/navigator | Use ICS matrix (T0xxx) for OT scenarios //"));
   };
   const rReqs = () => {
+    if (loading) return /*#__PURE__*/React.createElement(PH, {
+      t: "Generating… this may take 30–60 seconds"
+    });
     if (!parsed || parsed.error) return /*#__PURE__*/React.createElement(PH, {
       t: "Generate a scenario first"
     });
@@ -2208,6 +2223,9 @@ function MBSEBuilder() {
     }, parsed.coa)));
   };
   const rCameo = () => {
+    if (loading) return /*#__PURE__*/React.createElement(PH, {
+      t: "Generating… this may take 30–60 seconds"
+    });
     if (!parsed || parsed.error) return /*#__PURE__*/React.createElement(PH, {
       t: "Generate a scenario first"
     });
