@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     return;
   }
 
-  const model = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
+  const model = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6";
   const messages = body.messages;
   if (!Array.isArray(messages) || messages.length === 0) {
     res.status(400).json({ error: "Request body must include a non-empty 'messages' array" });
@@ -40,7 +40,7 @@ export default async function handler(req, res) {
         "x-api-key": KEY,
         "anthropic-version": "2023-06-01",
       },
-      body: JSON.stringify({ model, max_tokens: 6000, messages }),
+      body: JSON.stringify({ model, max_tokens: 4000, messages }),
     });
 
     const data = await upstream.json();
