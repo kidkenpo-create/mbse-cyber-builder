@@ -1,3 +1,4 @@
+import React from 'react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 
 // ── THREAT ATLAS DATA (sourced from Modules 1-8 PPTs) ─────────────────────
