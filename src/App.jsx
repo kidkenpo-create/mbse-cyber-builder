@@ -1334,7 +1334,7 @@ function ThreatAtlas() {
       fontSize: 10,
       color: "#4a7a99",
       padding: "2px 0"
-    }
+    }h
   }, "\u2022 ", t))))))), view === "attacks" && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: "'Share Tech Mono',monospace",
@@ -1731,15 +1731,41 @@ function MBSEBuilder() {
         const pw = window.prompt("This deployment is password-protected. Enter access password:");
         if (pw) { sessionStorage.setItem("mbse_pw", pw); res = await callProxy(pw); }
       }
-      const rawText = await res.text();
-      let data;
-      try { data = JSON.parse(rawText); } catch (_) {
-        throw new Error("Server error (HTTP " + res.status + "): " + rawText.substring(0, 200).replace(/<[^>]+>/g, ""));
-      }
-      if (!res.ok) throw new Error(data?.error?.message || data?.error || "HTTP " + res.status);
-      if (!Array.isArray(data.content)) throw new Error("Unexpected API response shape: " + JSON.stringify(data).substring(0, 100));
-      const full = data.content.map(b => b.text || "").join("\n");
-      setRaw(full);
+      // Handle non-OK responses (error JSON from edge function or Anthropic)
+            if (!res.ok) {
+                      const errText = await res.text();
+                      let errMsg;
+                      try { const errData = JSON.parse(errText); errMsg = (errData.error && (errData.error.message || errData.error)) || errText; }
+                      catch (_) { errMsg = errText.substring(0, 200).replace(/<[^>]+>/g, ""); }
+                      throw new Error("Server error (HTTP " + res.status + "): " + errMsg);
+            }
+            // Read SSE stream from Vercel Edge Runtime (no timeout - tokens stream in progressively)
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let full = "";
+            let sseBuffer = "";
+            let streamDone = false;
+            while (!streamDone) {
+                      const { value, done } = await reader.read();
+                      streamDone = done;
+                      if (value) {
+                                  sseBuffer += decoder.decode(value, { stream: true });
+                                  const lines = sseBuffer.split("\n");
+                                  sseBuffer = lines.pop();
+                                  for (const line of lines) {
+                                                if (!line.startsWith("data: ")) continue;
+                                                const payload = line.slice(6).trim();
+                                                if (payload === "[DONE]") { streamDone = true; break; }
+                                                try {
+                                                                const evt = JSON.parse(payload);
+                                                                if (evt.type === "content_block_delta" && evt.delta && evt.delta.type === "text_delta") {
+                                                                                  full += evt.delta.text;
+                                                                }
+                                                } catch (_) {}
+                                  }
+                      }
+            
+            }setRaw(full);
       setParsed({
         narrative: extractSection(full, "SCENARIO NARRATIVE"),
         usecase: cleanMermaid(extractSection(full, "USE CASE DIAGRAM")),
