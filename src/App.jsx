@@ -1731,9 +1731,13 @@ function MBSEBuilder() {
         const pw = window.prompt("This deployment is password-protected. Enter access password:");
         if (pw) { sessionStorage.setItem("mbse_pw", pw); res = await callProxy(pw); }
       }
-      const data = await res.json();
+      const rawText = await res.text();
+      let data;
+      try { data = JSON.parse(rawText); } catch (_) {
+        throw new Error("Server error (HTTP " + res.status + "): " + rawText.substring(0, 200).replace(/<[^>]+>/g, ""));
+      }
       if (!res.ok) throw new Error(data?.error?.message || data?.error || "HTTP " + res.status);
-      if (!Array.isArray(data.content)) throw new Error("Unexpected API response shape");
+      if (!Array.isArray(data.content)) throw new Error("Unexpected API response shape: " + JSON.stringify(data).substring(0, 100));
       const full = data.content.map(b => b.text || "").join("\n");
       setRaw(full);
       setParsed({
