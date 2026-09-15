@@ -427,13 +427,13 @@ function buildPrompt(mk, scen, sys, actor, soph, acq, role, extra, checks) {
     + "ARTIFACTS TO GENERATE:\n" + arts.map(a => "- " + a).join("\n") + "\n\n"
     + "Use EXACTLY these section headers with === on both sides:\n\n"
     + "===SCENARIO NARRATIVE===\n"
-    + "3-4 paragraphs grounded in " + mod.fullLabel + " content. Include: threat actor motivation/TTPs, initial access vector, propagation through control structure, mission impact. Reference specific systems, CVEs, DoDI citations, and CRRM methodology from the module context above.\n\n"
+    + "2 paragraphs max grounded in " + mod.fullLabel + ". Include: threat actor motivation/TTPs, initial access vector, mission impact. Reference specific CVEs, DoDI citations, and CRRM methodology. BE CONCISE.\n\n"
     + "===USE CASE DIAGRAM===\n" + (checks.usecase ? ucRule : "SKIP") + "\n\n"
     + "===SEQUENCE DIAGRAM===\n" + (checks.sequence ? seqRule : "SKIP") + "\n\n"
     + "===BLOCK DEFINITION DIAGRAM===\n" + (checks.bdd ? "ASCII BDD relevant to " + mod.fullLabel + ". Show Attacker, Target System blocks, Security/Resilience Control blocks with interfaces. Use MBSE BDD notation style." : "SKIP") + "\n\n"
     + "===MITRE ATTACK MAPPING===\n" + (checks.mitre ? "6-10 techniques most relevant to this module and scenario. Prefer ICS matrix for OT scenarios. Format each line exactly: Tactic | TechniqueID | Technique Name | How it applies to this specific scenario" : "SKIP") + "\n\n"
-    + "===SECURITY REQUIREMENTS===\n" + (checks.req ? "8-12 SHALL requirements for " + mod.fullLabel + ". Format each line: REQ-ID | SHALL statement | Priority H/M/L | NIST 800-53 Control | Relevant DoDI. Ground requirements in module-specific context." : "SKIP") + "\n\n"
-    + "===STPA-SEC ANALYSIS===\n" + (checks.stpa ? "Full STPA-Sec grounded in " + mod.fullLabel + ":\n1. LOSSES (L-1 to L-5): mission-level unacceptable outcomes\n2. HAZARDS (H-1 to H-6): system states leading to losses\n3. CONTROL STRUCTURE: Controller, Control Actions, Controlled Process, Feedback channels\n4. HAZARDOUS CONTROL ACTIONS: For 2 key control actions, list all 4 HCA types (provided-when-shouldnt, not-provided-when-should, wrong-timing, wrong-duration)\n5. LOSS SCENARIOS (LS-1 to LS-4): adversary action -> HCA -> hazard -> loss chain" : "SKIP") + "\n\n"
+    + "===SECURITY REQUIREMENTS===\n" + (checks.req ? "6-8 SHALL requirements for " + mod.fullLabel + ". Table format: REQ-ID | SHALL statement (max 20 words) | Priority H/M/L | NIST 800-53 | DoDI. BE CONCISE." : "SKIP") + "\n\n"
+    + "===STPA-SEC ANALYSIS===\n" + (checks.stpa ? "CONCISE STPA-Sec for " + mod.fullLabel + " — BE BRIEF, use tables only, NO ASCII art, NO prose paragraphs:\n1. LOSSES: table of L-1 to L-4 only (ID | Statement | Type)\n2. HAZARDS: table of H-1 to H-4 only (ID | State | Constraint | Links To)\n3. CONTROL STRUCTURE: 3-line text summary only — Controller, Control Actions, Controlled Process. NO diagrams.\n4. HAZARDOUS CONTROL ACTIONS: ONE control action only (ENGAGE). Table of 4 HCA types (Type | Description | Hazard).\n5. LOSS SCENARIOS: TWO scenarios only (LS-1, LS-2). Format: Adversary Action | HCA | Hazard | Loss | MITRE TTPs. Keep each row under 20 words." : "SKIP") + "\n\n"
     + "===COURSES OF ACTION===\n" + (checks.coa ? "5-8 COAs for " + mod.fullLabel + ". For each: Name | Description | Effectiveness | Tradeoffs. Include SCRE-specific techniques (FOREST, Sentinel, design patterns where relevant)." : "SKIP") + "\n\n"
 
     + "===DISCUSSION QUESTIONS===\n"
@@ -565,7 +565,7 @@ export default function MBSEBuilder() {
           "anthropic-dangerous-direct-browser-access": "true",
         },
         body: JSON.stringify({
-          model: "claude-sonnet-4-6", max_tokens: 8000,
+          model: "claude-sonnet-4-6", max_tokens: 12000,
           messages: [{ role: "user", content: buildPrompt(mk, scen, sys, actor, soph, acq, role, extra, checks) }],
         }),
       });
