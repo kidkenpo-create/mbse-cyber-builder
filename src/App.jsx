@@ -265,7 +265,9 @@ const SOPH = { 1: "Tier 1 — Opportunistic (script kiddie)", 2: "Tier 2 — Org
 const TABS = ["Narrative", "STPA-Sec", "Diagrams", "MITRE Matrix", "Requirements", "Courses of Action", "Raw"];
 
 function extractSection(txt, header) {
-  const m = txt.match(new RegExp("===\\s*" + header + "\\s*===([\\s\\S]*?)(?====|$)", "i"));
+  // Robust match: handles ===**HEADER**===, ===HEADER (COA)===, ===HEADER:===, etc.
+  const pattern = "===\\s*\\*{0,2}\\s*" + header + "[^=]*\\*{0,2}\\s*===([\\s\\S]*?)(?====|$)";
+  const m = txt.match(new RegExp(pattern, "i"));
   return m ? m[1].trim() : null;
 }
 function cleanMermaid(code) {
