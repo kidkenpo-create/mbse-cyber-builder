@@ -1,8 +1,8 @@
 {
   "name": "mbse-cyber-builder",
   "version": "1.0.0",
+  "description": "CYB-5620V MBSE Cyber Scenario Builder — War-U / DAU",
   "private": true,
-  "description": "CYB-5620V Secure Cyber Resilient Engineering — MBSE Cyber Scenario Builder",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,7 +14,7 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.4",
-    "vite": "^5.4.11"
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.2"
   }
 }

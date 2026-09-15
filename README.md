@@ -1,113 +1,147 @@
-# MBSE Cyber Scenario Builder — CYB-5620V (SCRE)
+# CYB-5620V · MBSE Cyber Scenario Builder
 
-A Model-Based Systems Engineering scenario generator for the Secure Cyber Resilient
-Engineering course. Generates STPA-Sec analyses, MITRE ATT&CK mappings, SysML diagrams,
-security requirements, and Cameo/MagicDraw XMI + CSV exports across Modules 2–8.
+> **War-U / DAU** · Secure Cyber Resilient Engineering (SCRE) · Powered by Claude AI
 
-This version is packaged as a **Vite + React** web app with a **serverless proxy** so it
-can be deployed to Vercel. The proxy holds your Anthropic API key server-side — the key
-never reaches the browser and there are no CORS problems.
+An AI-powered MBSE scenario generation tool for classroom use across Modules 2–8 of CYB-5620V. Students configure a threat scenario, select MBSE artifacts, and generate grounded STPA-Sec analyses, Mermaid diagrams, MITRE ATT&CK mappings, SysML exports, and security requirements — all ready to import into Cameo Systems Modeler.
 
 ---
 
-## Architecture
-
-```
-Browser (React app)  →  POST /api/generate  →  Anthropic API
-                         (holds your key,       (returns scenario)
-                          picks the model)
-```
-
-- `src/App.jsx` — the builder UI (calls `/api/generate`, never Anthropic directly)
-- `api/generate.js` — Vercel serverless function; holds the key, forwards the request
-- Env vars live in **Vercel's dashboard**, never in the repo
-
----
-
-## Step 1 — Put this on GitHub
-
-You need [git](https://git-scm.com/) and a GitHub account.
-
-1. On GitHub, click **New repository**. Name it `mbse-cyber-builder`. Public is fine —
-   **the API key is NOT in this repo**, so publishing the code is safe. Do NOT check
-   "Add a README" (this folder already has one). Click **Create repository**.
-2. In this folder, run:
-
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit: MBSE Cyber Scenario Builder"
-   git branch -M main
-   git remote add origin https://github.com/YOUR_USERNAME/mbse-cyber-builder.git
-   git push -u origin main
-   ```
-
-   Replace `YOUR_USERNAME`. If prompted to authenticate, use a
-   [personal access token](https://github.com/settings/tokens) as the password.
-
----
-
-## Step 2 — Get an Anthropic API key
-
-1. Go to <https://console.anthropic.com>, sign in, open **API Keys**, create one.
-2. Copy it (starts with `sk-ant-`). Usage is billed to your account.
-
----
-
-## Step 3 — Deploy on Vercel
-
-1. Go to <https://vercel.com>, sign in with GitHub.
-2. Click **Add New… → Project**, then **Import** your `mbse-cyber-builder` repo.
-3. Vercel auto-detects Vite — leave the build settings as-is.
-4. Before deploying, open **Environment Variables** and add:
-
-   | Name                | Value                              | Required |
-   |---------------------|------------------------------------|----------|
-   | `ANTHROPIC_API_KEY` | your `sk-ant-...` key              | Yes      |
-   | `ANTHROPIC_MODEL`   | e.g. `claude-sonnet-4-20250514`    | Optional |
-   | `ACCESS_PASSWORD`   | a shared password (see below)      | Optional |
-
-5. Click **Deploy**. After ~1 minute you'll get a live URL.
-
----
-
-## IMPORTANT — protect your billing on a public deploy
-
-Because the site is public, anyone with the URL can trigger generations that bill to
-**your** key. To stop that:
-
-- Set the `ACCESS_PASSWORD` env var to any phrase. The app will then prompt each user
-  for it once per session and refuse to generate without it.
-- Alternatively, keep the Vercel deployment private / behind Vercel's own access
-  controls, or only share the URL with your class.
-
-The key is never exposed either way — this is only about who can *spend* it.
-
----
-
-## Model string
-
-The proxy defaults to `claude-sonnet-4-20250514`. If your key doesn't have access to that
-exact model, set `ANTHROPIC_MODEL` to one it does. Verify with a single test generation
-after deploying — if you see an error mentioning the model, that's the fix.
-
----
-
-## Run it locally (optional)
+## 🚀 Quick Start (Local Dev)
 
 ```bash
+# 1. Clone the repo
+git clone https://github.com/kidkenpo-4814/mbse-cyber-builder.git
+cd mbse-cyber-builder
+
+# 2. Install dependencies
 npm install
-npm run dev        # UI only — /api/generate won't work without the Vercel runtime
+
+# 3. Start dev server (runs on http://localhost:3000)
+npm run dev
 ```
 
-To test the proxy locally, install the Vercel CLI and use `vercel dev`, with a
-`.env.local` file based on `.env.example`.
+> The app calls the Anthropic API directly from the browser via the Claude.ai proxy — no backend required when running inside Claude.ai artifacts. For standalone hosting, see the API Key section below.
 
 ---
 
-## Notes
+## 🏗️ Project Structure
 
-- Diagrams render in-browser via Mermaid (loaded from CDN at runtime).
-- Cameo/MagicDraw XMI export is a **scaffold** — packages, blocks, requirements, and
-  deriveReqt traces import into the containment tree; you apply final stereotypes in Cameo.
-- For educational use in CYB-5620V.
+```
+mbse-cyber-builder/
+├── public/
+│   └── favicon.svg
+├── src/
+│   ├── main.jsx          ← React entry point
+│   └── App.jsx           ← Full application (single-file component)
+├── .github/
+│   └── workflows/
+│       └── deploy.yml    ← GitHub Actions → Vercel auto-deploy
+├── .env.example          ← API key template (never commit .env.local)
+├── .gitignore
+├── index.html            ← Vite HTML shell
+├── package.json
+├── vercel.json           ← Vercel deployment config
+├── vite.config.js
+└── README.md
+```
+
+---
+
+## ☁️ Vercel Deployment
+
+### Option A — Vercel CLI (fastest)
+```bash
+npm i -g vercel
+vercel        # follow prompts — links to your Vercel project
+vercel --prod # deploy to production
+```
+
+### Option B — GitHub → Vercel Auto-Deploy
+1. Push this repo to GitHub
+2. Go to [vercel.com](https://vercel.com) → **New Project** → Import from GitHub
+3. Vercel auto-detects Vite — no configuration needed
+4. Add secrets in **Project → Settings → Environment Variables** (see below)
+5. Every push to `main` triggers a production deploy automatically via `.github/workflows/deploy.yml`
+
+### GitHub Actions Secrets Required
+| Secret | Where to get it |
+|---|---|
+| `VERCEL_TOKEN` | Vercel → Account Settings → Tokens |
+| `VERCEL_ORG_ID` | `.vercel/project.json` after first `vercel` CLI link |
+| `VERCEL_PROJECT_ID` | `.vercel/project.json` after first `vercel` CLI link |
+
+---
+
+## 🔑 API Key Configuration
+
+This app uses the **Anthropic Claude API** (`claude-sonnet-4-6`).
+
+### When running inside Claude.ai (default classroom use)
+No key needed — the platform proxy handles authentication automatically.
+
+### When self-hosting (standalone Vercel deployment)
+1. Copy `.env.example` → `.env.local`
+2. Set your Anthropic API key:
+   ```
+   VITE_ANTHROPIC_API_KEY=sk-ant-your-key-here
+   ```
+3. In `src/App.jsx`, update the fetch headers:
+   ```js
+   headers: {
+     "Content-Type": "application/json",
+     "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
+     "anthropic-version": "2023-06-01",
+     "anthropic-dangerous-direct-browser-access": "true",
+   },
+   ```
+4. Add the same key in Vercel → Project → Settings → Environment Variables
+
+> ⚠️ **Security note:** Browser-accessible API keys are visible in network traffic. For production classroom use, consider a lightweight proxy (Vercel Edge Function or Cloudflare Worker) that keeps the key server-side.
+
+---
+
+## 📚 Modules Covered
+
+| Module | Topic | Day |
+|---|---|---|
+| M2 | ICS Threats & Adversaries | Day 1 AM |
+| M3 | SCRE Policy & Acquisition | Day 1 |
+| M4 | SCRE Approaches & Building Blocks | Day 1 PM |
+| M5 | Pipeline ICS Case Study | Day 1 PM |
+| M6 | Silverfish UGV — STPA-Sec & Assurance Cases | Day 2 AM |
+| M7 | Silverfish SDAD — Sentinel & Resilience | Day 2 PM |
+| M8 | Guardian UAV (GAVIN) — Full CRRM + Contracting | Day 2 PM |
+
+---
+
+## 🔧 Generated Artifacts
+
+- **Scenario Narrative** — grounded in module slides, CVEs, DoDI citations
+- **STPA-Sec Analysis** — Losses, Hazards, Control Structure, HCAs, Loss Scenarios
+- **Use Case Diagram** — Mermaid flowchart (right-click → Copy Image → PowerPoint)
+- **Attack Sequence Diagram** — Mermaid sequenceDiagram
+- **Block Definition Diagram** — SysML BDD (ASCII)
+- **MITRE ATT&CK Mapping** — ICS + Enterprise techniques with application notes
+- **Security Requirements** — SHALL statements with NIST 800-53 + DoDI traceability
+- **Courses of Action** — SCRE-specific defensive TTPs
+- **Cameo / MagicDraw Export** — XMI download (import into Cameo) + CSV requirements download
+
+---
+
+## 🐛 Bug Fixes (v1.0.1)
+
+- **STPA-Sec tab stuck / blank** — Fixed section header mismatch between prompt (`===STPA-SEC ANALYSIS===`) and parser regex. Parser now accepts both `STPA SEC` and `STPA-SEC` via `STPA[- ]SEC ANALYSIS` pattern.
+- **Model string** — Updated from `claude-sonnet-4-5` to `claude-sonnet-4-6`.
+
+---
+
+## 🏫 Classroom Deployment Notes
+
+- **Online (graded work):** Use the Vercel-hosted cloud version — higher output quality via Claude Sonnet
+- **Air-gapped / lab:** Use `mbse-cyber-builder-offline-ollama.html` served via `python3 -m http.server 8080` with Ollama (`llama3.1:8b`)
+- **Cameo integration:** Download XMI from the Cameo Export tab → File → Import → Import XMI in Cameo Systems Modeler 2021x+
+- **Requirements import:** Download CSV → MagicDraw Tools → Data Import → map columns
+
+---
+
+*CYB-5620V Secure Cyber Resilient Engineering · War-U / Defense Acquisition University*
