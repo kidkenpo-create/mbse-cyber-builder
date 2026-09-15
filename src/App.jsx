@@ -265,8 +265,10 @@ const SOPH = { 1: "Tier 1 — Opportunistic (script kiddie)", 2: "Tier 2 — Org
 const TABS = ["Narrative", "STPA-Sec", "Diagrams", "MITRE Matrix", "Requirements", "Courses of Action", "Raw"];
 
 function extractSection(txt, header) {
-  // Robust match: handles ===**HEADER**===, ===HEADER (COA)===, ===HEADER:===, etc.
-  const pattern = "===\\s*\\*{0,2}\\s*" + header + "[^=]*\\*{0,2}\\s*===([\\s\\S]*?)(?====|$)";
+  // Robust match: handles numbered prefixes (===7. HEADER===),
+  // bold markers (===**HEADER**===), abbreviations (===HEADER (COA)===),
+  // colons (===HEADER:===), and extra spaces.
+  const pattern = "===\\s*\\*{0,2}\\s*(?:\\d+[\\.)\\s]+)?\\s*" + header + "[^=]*\\*{0,2}\\s*===([\\s\\S]*?)(?====|$)";
   const m = txt.match(new RegExp(pattern, "i"));
   return m ? m[1].trim() : null;
 }
@@ -422,7 +424,7 @@ function buildPrompt(mk, scen, sys, actor, soph, acq, role, extra, checks) {
     + "- Acquisition Pathway: " + acq + "\n"
     + "- Analyst Role: " + role + "\n"
     + "- Additional Context: " + (extra || "None") + "\n\n"
-    + "ARTIFACTS TO GENERATE:\n" + arts.map((a, i) => (i+1) + ". " + a).join("\n") + "\n\n"
+    + "ARTIFACTS TO GENERATE:\n" + arts.map(a => "- " + a).join("\n") + "\n\n"
     + "Use EXACTLY these section headers with === on both sides:\n\n"
     + "===SCENARIO NARRATIVE===\n"
     + "3-4 paragraphs grounded in " + mod.fullLabel + " content. Include: threat actor motivation/TTPs, initial access vector, propagation through control structure, mission impact. Reference specific systems, CVEs, DoDI citations, and CRRM methodology from the module context above.\n\n"
@@ -442,23 +444,23 @@ function buildPrompt(mk, scen, sys, actor, soph, acq, role, extra, checks) {
 // ── CSS — dynamic, accepts darkMode boolean ───────────────────────────────────
 function buildCss(dark) {
   // ── token sets ──────────────────────────────────────────────────────────────
-  const bg       = dark ? "#040d14"          : "#f0f4f8";
-  const bgInner  = dark ? "#070f1a"          : "#ffffff";
-  const bgBar    = dark ? "#050e1a"          : "#e2e8f0";
-  const bgInput  = dark ? "rgba(0,212,255,0.04)" : "rgba(0,150,200,0.06)";
-  const bgMod    = dark ? "rgba(0,0,0,0.2)" : "rgba(0,0,0,0.04)";
-  const border   = dark ? "#0f3a5c"          : "#cbd5e1";
-  const borderTd = dark ? "rgba(15,58,92,0.5)" : "rgba(100,150,200,0.3)";
-  const txt      = dark ? "#c8dde8"          : "#1e293b";
-  const txtMuted = dark ? "#4a7a99"          : "#64748b";
-  const txtTitle = dark ? "#ffffff"          : "#0f172a";
-  const accent   = "#00d4ff";
-  const optBg    = dark ? "#0a1a2a"          : "#ffffff";
-  const scrollBg = dark ? "#0f3a5c"          : "#cbd5e1";
-  const thBg     = dark ? "rgba(0,212,255,0.08)" : "rgba(0,150,200,0.1)";
-  const shadow   = dark ? "0 0 18px rgba(0,212,255,0.4)" : "0 0 18px rgba(0,150,200,0.2)";
-  const ciBg     = dark ? "rgba(255,107,53,0.05)" : "rgba(255,107,53,0.04)";
-  const ciBorder = dark ? "rgba(255,107,53,0.28)"  : "rgba(255,107,53,0.35)";
+  const bg       = dark ? "#040d14"              : "#f0f4f8";
+  const bgInner  = dark ? "#070f1a"              : "#ffffff";
+  const bgBar    = dark ? "#050e1a"              : "#e2e8f0";
+  const bgInput  = dark ? "rgba(0,212,255,0.04)" : "rgba(0,0,0,0.04)";
+  const bgMod    = dark ? "rgba(0,0,0,0.2)"      : "rgba(0,0,0,0.04)";
+  const border   = dark ? "#0f3a5c"              : "#94a3b8";
+  const borderTd = dark ? "rgba(15,58,92,0.5)"   : "rgba(100,130,160,0.4)";
+  const txt      = dark ? "#c8dde8"              : "#0f172a";
+  const txtMuted = dark ? "#4a7a99"              : "#334155";
+  const txtTitle = dark ? "#ffffff"              : "#0f172a";
+  const accent   = dark ? "#00d4ff"              : "#0369a1";
+  const optBg    = dark ? "#0a1a2a"              : "#ffffff";
+  const scrollBg = dark ? "#0f3a5c"              : "#94a3b8";
+  const thBg     = dark ? "rgba(0,212,255,0.08)" : "rgba(3,105,161,0.1)";
+  const shadow   = dark ? "0 0 18px rgba(0,212,255,0.4)" : "none";
+  const ciBg     = dark ? "rgba(255,107,53,0.05)" : "rgba(255,107,53,0.06)";
+  const ciBorder = dark ? "rgba(255,107,53,0.28)" : "rgba(255,107,53,0.4)";
 
   return `
   @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&family=Orbitron:wght@700;900&display=swap');
@@ -510,7 +512,8 @@ function buildCss(dark) {
   td{padding:5px 8px;border:1px solid ${borderTd};vertical-align:top;color:${txt};}
   .bh{display:inline-block;padding:2px 5px;border-radius:2px;font-size:10px;font-weight:bold;background:rgba(255,0,64,0.18);color:#ff0040;border:1px solid rgba(255,0,64,0.35);}
   .bm{display:inline-block;padding:2px 5px;border-radius:2px;font-size:10px;font-weight:bold;background:rgba(255,107,53,0.18);color:#ff6b35;border:1px solid rgba(255,107,53,0.35);}
-  .bl{display:inline-block;padding:2px 5px;border-radius:2px;font-size:10px;font-weight:bold;background:rgba(57,255,20,0.1);color:${dark?"#39ff14":"#16a34a"};border:1px solid rgba(57,255,20,0.25);}
+  .bl{display:inline-block;padding:2px 5px;border-radius:2px;font-size:10px;font-weight:bold;background:${dark?"rgba(57,255,20,0.1)":"rgba(22,163,74,0.12)"};color:${dark?"#39ff14":"#15803d"};border:1px solid ${dark?"rgba(57,255,20,0.25)":"rgba(22,163,74,0.4)"};}
+  .pre-out{font-family:'Share Tech Mono',monospace;font-size:11px;color:${txt};white-space:pre-wrap;line-height:1.8;}
   .cr{display:flex;justify-content:flex-end;padding:5px 11px;border-bottom:1px solid ${border};}
   .cb{background:transparent;border:1px solid ${border};color:${txtMuted};font-family:'Share Tech Mono',monospace;font-size:10px;padding:3px 8px;cursor:pointer;border-radius:2px;transition:all 0.15s;}
   .cb:hover{border-color:${accent};color:${accent};}
@@ -602,7 +605,7 @@ export default function MBSEBuilder() {
         </div>
         {parsed.dq && <div style={{ marginTop:14, paddingTop:12, borderTop:"1px solid #0f3a5c" }}>
           <div style={{ fontFamily:"'Orbitron',monospace", fontSize:10, color:"#ff6b35", letterSpacing:2, marginBottom:7 }}>▸ DISCUSSION QUESTIONS</div>
-          <div style={{ fontSize:14, color:"#4a7a99", whiteSpace:"pre-wrap", lineHeight:1.8, fontFamily:"'Rajdhani',sans-serif" }}>{parsed.dq}</div>
+          <div style={{ fontSize:14, color:darkMode?"#4a7a99":"#334155", whiteSpace:"pre-wrap", lineHeight:1.8, fontFamily:"'Rajdhani',sans-serif" }}>{parsed.dq}</div>
         </div>}
       </div>
     );
@@ -614,8 +617,8 @@ export default function MBSEBuilder() {
     return (
       <div style={{ padding:13 }}>
         <div className="st">▸ STPA-SEC CONTROL STRUCTURE ANALYSIS</div>
-        <div style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:10, color:"#4a7a99", marginBottom:10 }}>// {mod.fullLabel} · CRRM Methodology //</div>
-        <pre style={{ background:"rgba(0,212,255,0.02)", border:"1px solid #0f3a5c", borderRadius:3, padding:12, fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:"#c8dde8", whiteSpace:"pre-wrap", lineHeight:1.8 }}>{parsed.stpa}</pre>
+        <div style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:10, color:darkMode?"#4a7a99":"#334155", marginBottom:10 }}>// {mod.fullLabel} · CRRM Methodology //</div>
+        <pre style={{ background:darkMode?"rgba(0,212,255,0.02)":"rgba(3,105,161,0.04)", border:"1px solid "+(darkMode?"#0f3a5c":"#94a3b8"), borderRadius:3, padding:12, fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:darkMode?"#c8dde8":"#0f172a", whiteSpace:"pre-wrap", lineHeight:1.8 }}>{parsed.stpa}</pre>
       </div>
     );
   };
@@ -635,7 +638,7 @@ export default function MBSEBuilder() {
           ▸ Right-click diagram → Copy Image → paste into PowerPoint / Word&nbsp;&nbsp;|&nbsp;&nbsp;↓ SVG → Chrome → Print → PDF for crisp vector quality
         </div>
         {diags.map((d,i) => <MermaidDiagram key={i} code={d.code} title={d.title} />)}
-        {hasBdd && <div style={{ background:"rgba(0,212,255,0.02)", border:"1px solid #0f3a5c", borderRadius:3, padding:12 }}>
+        {hasBdd && <div style={{ background:darkMode?"rgba(0,212,255,0.02)":"rgba(3,105,161,0.04)", border:"1px solid "+(darkMode?"#0f3a5c":"#94a3b8"), borderRadius:3, padding:12 }}>
           <div style={{ fontFamily:"'Orbitron',monospace", fontSize:10, color:"#ff6b35", letterSpacing:2, marginBottom:7 }}>▸ BLOCK DEFINITION DIAGRAM (ASCII / SysML)</div>
           <pre style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:"#39ff14", whiteSpace:"pre", overflowX:"auto", lineHeight:1.6 }}>{parsed.bdd}</pre>
         </div>}
@@ -658,11 +661,11 @@ export default function MBSEBuilder() {
               const cols = line.split("|").map(c=>c.trim()).filter(Boolean);
               if (cols.length < 3) return null;
               const sev = Object.entries(sevMap).find(([k])=>(cols[0]||"").toLowerCase().includes(k))?.[1]||"l";
-              return <tr key={i}><td>{cols[0]}</td><td><span className={"b"+sev}>{cols[1]}</span></td><td>{cols[2]}</td><td style={{color:"#4a7a99",fontSize:11}}>{cols[3]||""}</td></tr>;
+              return <tr key={i}><td>{cols[0]}</td><td><span className={"b"+sev}>{cols[1]}</span></td><td>{cols[2]}</td><td style={{color:darkMode?"#4a7a99":"#334155",fontSize:11}}>{cols[3]||""}</td></tr>;
             })}
           </tbody>
         </table>
-        <p style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:10, color:"#4a7a99", marginTop:8 }}>// Import IDs into attack.mitre.org/navigator | Use ICS matrix for OT scenarios //</p>
+        <p style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:10, color:darkMode?"#4a7a99":"#334155", marginTop:8 }}>// Import IDs into attack.mitre.org/navigator | Use ICS matrix for OT scenarios //</p>
       </div>
     );
   };
@@ -673,7 +676,7 @@ export default function MBSEBuilder() {
     return (
       <div style={{ padding:13 }}>
         <div className="st">▸ SECURITY REQUIREMENTS — {mod.label.toUpperCase()}</div>
-        <pre style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:"#c8dde8", whiteSpace:"pre-wrap", lineHeight:1.8 }}>{parsed.req}</pre>
+        <pre style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:darkMode?"#c8dde8":"#0f172a", whiteSpace:"pre-wrap", lineHeight:1.8 }}>{parsed.req}</pre>
       </div>
     );
   };
@@ -684,7 +687,7 @@ export default function MBSEBuilder() {
     return (
       <div style={{ padding:13 }}>
         <div className="st" style={{color:"#ff6b35"}}>▸ COURSES OF ACTION — {mod.label.toUpperCase()}</div>
-        <pre style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:"#c8dde8", whiteSpace:"pre-wrap", lineHeight:1.8 }}>{parsed.coa}</pre>
+        <pre style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:darkMode?"#c8dde8":"#0f172a", whiteSpace:"pre-wrap", lineHeight:1.8 }}>{parsed.coa}</pre>
       </div>
     );
   };
