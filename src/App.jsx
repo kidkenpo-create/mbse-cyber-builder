@@ -262,7 +262,7 @@ const ROLES = [
 ];
 
 const SOPH = { 1: "Tier 1 — Opportunistic (script kiddie)", 2: "Tier 2 — Organized Criminal", 3: "Tier 3 — Sophisticated Criminal / Hacktivist", 4: "Tier 4 — APT (Fancy Bear level)", 5: "Tier 5 — Nation-State (co-evolving, zero-day capable)" };
-const TABS = ["Narrative", "STPA-Sec", "Diagrams", "MITRE Matrix", "Requirements", "Courses of Action", "Raw"];
+const TABS = ["Narrative", "STPA-Sec", "Assurance Cases", "Diagrams", "MITRE Matrix", "Requirements", "Courses of Action", "Raw"];
 
 function extractSection(txt, header) {
   // Robust match: handles numbered prefixes (===7. HEADER===),
@@ -405,6 +405,7 @@ function buildPrompt(mk, scen, sys, actor, soph, acq, role, extra, checks) {
     checks.req       && "Formal security requirements (SHALL statements)",
     checks.coa       && "Defensive Courses of Action",
     checks.stpa      && "STPA-Sec Control Structure Analysis",
+    checks.assurance && "CRRM Assurance Cases (Claim → Evidence → Argument → SHALL)",
 
   ].filter(Boolean);
 
@@ -434,6 +435,7 @@ function buildPrompt(mk, scen, sys, actor, soph, acq, role, extra, checks) {
     + "===MITRE ATTACK MAPPING===\n" + (checks.mitre ? "6-10 techniques most relevant to this module and scenario. Prefer ICS matrix for OT scenarios. Format each line exactly: Tactic | TechniqueID | Technique Name | How it applies to this specific scenario" : "SKIP") + "\n\n"
     + "===SECURITY REQUIREMENTS===\n" + (checks.req ? "6-8 SHALL requirements for " + mod.fullLabel + ". Table format: REQ-ID | SHALL statement (max 20 words) | Priority H/M/L | NIST 800-53 | DoDI. BE CONCISE." : "SKIP") + "\n\n"
     + "===COURSES OF ACTION===\n" + (checks.coa ? "5-8 COAs for " + mod.fullLabel + ". Table: Name | Description | Effectiveness | Tradeoffs. Include SCRE techniques (FOREST, Sentinel, design patterns). BE CONCISE." : "SKIP") + "\n\n"
+    + "===ASSURANCE CASES===\n" + (checks.assurance ? "TWO assurance cases grounded in " + mod.fullLabel + " CRRM methodology. Each case reduces the likelihood of one Loss Scenario from the STPA-Sec analysis above. For each case use EXACTLY this format:\n\nAC-1: [Short title]\nClaim: The system [specific verifiable claim about security property]\nEvidence:\n  E-1: [Test, inspection, or analysis that provides evidence]\n  E-2: [Second evidence source]\nArgument: Because [E-1] and [E-2] demonstrate [reasoning], the claim is supported.\nSHALL Requirement: [REQ-ID] The system SHALL [specific testable requirement] [NIST 800-53 control] [DoDI reference]\nLoss Scenario Mitigated: [LS-ID from STPA-Sec above]\n\nRepeat for AC-2. Ground each case in actual module CVEs, DoDI citations, and CRRM patterns from " + mod.fullLabel + "." : "SKIP") + "\n\n"
     + "===STPA-SEC ANALYSIS===\n" + (checks.stpa ? "CONCISE STPA-Sec for " + mod.fullLabel + " — BE BRIEF, use tables only, NO ASCII art, NO prose paragraphs:\n1. LOSSES: table of L-1 to L-4 only (ID | Statement | Type)\n2. HAZARDS: table of H-1 to H-4 only (ID | State | Constraint | Links To)\n3. CONTROL STRUCTURE: 3-line text summary only — Controller, Control Actions, Controlled Process. NO diagrams.\n4. HAZARDOUS CONTROL ACTIONS: ONE control action only (ENGAGE). Table of 4 HCA types (Type | Description | Hazard).\n5. LOSS SCENARIOS: TWO scenarios only (LS-1, LS-2). Format: Adversary Action | HCA | Hazard | Loss | MITRE TTPs. Keep each row under 20 words." : "SKIP") + "\n\n"
 
     + "===DISCUSSION QUESTIONS===\n"
@@ -601,6 +603,673 @@ function buildCss(dark) {
   `;
 }
 
+
+
+
+// ── Student Mode CSS — academic single-column, Bloom's taxonomy visual language ──
+const studentCss = `
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Georgia:ital,wght@0,400;0,700;1,400&display=swap');
+
+  .s-root{
+    background:#F7F8FA;
+    color:#1A2332;
+    font-family:'Inter',system-ui,sans-serif;
+    font-size:15px;
+    min-height:100vh;
+    padding:0;
+  }
+
+  /* ── Header ── */
+  .s-hdr{
+    background:#1A2332;
+    color:#fff;
+    padding:16px 24px 14px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .s-hdr-left{ display:flex; flex-direction:column; gap:2px; }
+  .s-course-label{ font-size:11px; font-weight:600; letter-spacing:.08em; color:#7EA8C4; text-transform:uppercase; }
+  .s-title{ font-family:'Georgia',Georgia,serif; font-size:20px; font-weight:700; color:#fff; line-height:1.2; }
+  .s-title em{ font-style:italic; color:#7EA8C4; }
+  .s-hdr-right{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .s-mode-bar{ display:flex; border:1px solid rgba(255,255,255,0.2); border-radius:4px; overflow:hidden; }
+  .s-mode-btn{ background:transparent; border:none; color:rgba(255,255,255,0.6); font-family:'Inter',sans-serif; font-size:11px; font-weight:500; padding:5px 14px; cursor:pointer; transition:all .15s; }
+  .s-mode-btn.on{ background:rgba(255,255,255,0.15); color:#fff; }
+  .s-theme-btn{ background:transparent; border:1px solid rgba(255,255,255,0.2); color:rgba(255,255,255,0.6); font-family:'Inter',sans-serif; font-size:11px; padding:5px 10px; cursor:pointer; border-radius:3px; }
+
+  /* ── Progress bar ── */
+  .s-progress{
+    background:#E8F0F7;
+    border-bottom:1px solid #D0DDE8;
+    padding:10px 24px;
+    display:flex;
+    align-items:center;
+    gap:0;
+  }
+  .s-prog-step{ display:flex; align-items:center; gap:6px; font-size:12px; font-weight:500; color:#7EA8C4; }
+  .s-prog-step.done{ color:#4A7C59; }
+  .s-prog-step.active{ color:#1A2332; font-weight:600; }
+  .s-prog-num{ width:22px; height:22px; border-radius:50%; border:2px solid currentColor; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex-shrink:0; background:#fff; }
+  .s-prog-step.done .s-prog-num{ background:#4A7C59; border-color:#4A7C59; color:#fff; }
+  .s-prog-step.active .s-prog-num{ background:#2C5F8A; border-color:#2C5F8A; color:#fff; }
+  .s-prog-line{ flex:1; height:2px; background:#D0DDE8; margin:0 8px; max-width:40px; }
+  .s-prog-line.done{ background:#4A7C59; }
+
+  /* ── Page container ── */
+  .s-page{ max-width:760px; margin:0 auto; padding:28px 24px 60px; }
+
+  /* ── Bloom badge ── */
+  .bloom-badge{
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:10px; font-weight:600; letter-spacing:.04em;
+    padding:3px 9px; border-radius:12px; margin-bottom:10px;
+  }
+  .bloom-remember{ background:#EEF3FB; color:#2C5F8A; border:1px solid #C5D8EE; }
+  .bloom-understand{ background:#EEF5F0; color:#3A6B48; border:1px solid #BDD9C5; }
+  .bloom-apply{ background:#FEF6EE; color:#8B4513; border:1px solid #F5D9B8; }
+  .bloom-analyze{ background:#F3EEF8; color:#5B3480; border:1px solid #D9C5EE; }
+  .bloom-evaluate{ background:#FEF0F0; color:#8B1A1A; border:1px solid #EEBDBD; }
+
+  /* ── Section heading ── */
+  .s-section-title{
+    font-family:'Georgia',Georgia,serif;
+    font-size:22px;
+    font-weight:700;
+    color:#1A2332;
+    margin:0 0 6px;
+    line-height:1.3;
+  }
+  .s-section-sub{
+    font-size:14px;
+    color:#4A5E72;
+    margin-bottom:20px;
+    line-height:1.6;
+    max-width:64ch;
+  }
+
+  /* ── Teaching card ── */
+  .s-teach{
+    background:#fff;
+    border:1px solid #D0DDE8;
+    border-left:4px solid #2C5F8A;
+    border-radius:6px;
+    padding:16px 18px;
+    margin-bottom:18px;
+  }
+  .s-teach-title{
+    font-size:12px; font-weight:700; letter-spacing:.06em;
+    color:#2C5F8A; margin-bottom:8px; text-transform:uppercase;
+  }
+  .s-teach-body{ font-size:14px; color:#1A2332; line-height:1.75; }
+  .s-teach-body b{ color:#1A2332; font-weight:600; }
+  .s-teach-body em{ color:#2C5F8A; font-style:normal; font-weight:600; }
+
+  /* ── Concept diagram card ── */
+  .s-diagram-card{
+    background:#fff;
+    border:1px solid #D0DDE8;
+    border-radius:6px;
+    padding:18px;
+    margin-bottom:18px;
+    overflow-x:auto;
+  }
+  .s-diagram-label{
+    font-size:11px; font-weight:600; color:#7EA8C4;
+    letter-spacing:.06em; text-transform:uppercase; margin-bottom:12px;
+  }
+
+  /* ── Form elements ── */
+  .s-field{ margin-bottom:16px; }
+  .s-label{ display:block; font-size:12px; font-weight:600; color:#4A5E72; margin-bottom:5px; letter-spacing:.03em; }
+  .s-select, .s-ta{
+    width:100%; padding:9px 12px;
+    border:1px solid #C8D6E5; border-radius:5px;
+    font-family:'Inter',sans-serif; font-size:14px; color:#1A2332;
+    background:#fff; outline:none; transition:border-color .15s;
+  }
+  .s-select:focus, .s-ta:focus{ border-color:#2C5F8A; box-shadow:0 0 0 3px rgba(44,95,138,.1); }
+  .s-ta{ resize:vertical; min-height:72px; line-height:1.6; }
+
+  /* ── Module cards grid ── */
+  .s-mod-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin-bottom:18px; }
+  .s-mod-card{
+    background:#fff; border:2px solid #D0DDE8; border-radius:6px;
+    padding:12px 14px; cursor:pointer; text-align:left; transition:all .15s; width:100%;
+  }
+  .s-mod-card:hover{ border-color:#2C5F8A; background:#F0F5FA; }
+  .s-mod-card.on{ border-color:var(--mc); background:#F0F5FA; box-shadow:0 0 0 1px var(--mc); }
+  .s-mod-day{ font-size:10px; font-weight:600; color:#7EA8C4; letter-spacing:.05em; text-transform:uppercase; margin-bottom:3px; }
+  .s-mod-name{ font-size:13px; font-weight:700; color:var(--mc,#2C5F8A); margin-bottom:3px; }
+  .s-mod-focus{ font-size:12px; color:#4A5E72; line-height:1.4; }
+
+  /* ── Actor tip ── */
+  .s-actor-tip{
+    background:#E8F0F7; border:1px solid #C5D8EE; border-radius:4px;
+    padding:8px 12px; font-size:12px; color:#2C5F8A; line-height:1.6; margin-top:5px; margin-bottom:12px;
+  }
+
+  /* ── Sophistication slider ── */
+  .s-slider{ width:100%; accent-color:#2C5F8A; }
+  .s-slider-labels{ display:flex; justify-content:space-between; font-size:11px; color:#7EA8C4; margin-top:3px; }
+  .s-soph-display{
+    text-align:center; font-size:12px; font-weight:600; color:#2C5F8A;
+    margin-top:5px; padding:4px 10px; background:#E8F0F7; border-radius:12px;
+    display:inline-block;
+  }
+
+  /* ── Artifact checkboxes ── */
+  .s-artifact-list{ display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+  .s-artifact-item{
+    display:flex; align-items:flex-start; gap:10px;
+    padding:10px 12px; border:1px solid #D0DDE8; border-radius:5px;
+    cursor:pointer; background:#fff; transition:all .15s;
+  }
+  .s-artifact-item:hover{ border-color:#2C5F8A; background:#F7FAFE; }
+  .s-artifact-item.on{ border-color:#2C5F8A; background:#F0F5FA; }
+  .s-artifact-item input{ accent-color:#2C5F8A; margin-top:2px; flex-shrink:0; }
+  .s-artifact-name{ font-size:13px; font-weight:600; color:#1A2332; }
+  .s-artifact-desc{ font-size:11px; color:#7EA8C4; margin-top:1px; }
+  .s-artifact-bloom{ margin-top:3px; }
+
+  /* ── Buttons ── */
+  .s-btn-primary{
+    width:100%; padding:12px; background:#2C5F8A; color:#fff;
+    border:none; border-radius:5px; font-family:'Inter',sans-serif;
+    font-size:14px; font-weight:600; cursor:pointer; transition:background .15s;
+  }
+  .s-btn-primary:hover{ background:#245179; }
+  .s-btn-primary:disabled{ background:#A0B8CE; cursor:not-allowed; }
+  .s-btn-secondary{
+    padding:10px 18px; background:#fff; color:#2C5F8A;
+    border:1px solid #2C5F8A; border-radius:5px; font-family:'Inter',sans-serif;
+    font-size:13px; font-weight:500; cursor:pointer; transition:all .15s;
+  }
+  .s-btn-secondary:hover{ background:#F0F5FA; }
+  .s-btn-ghost{
+    padding:10px 18px; background:transparent; color:#7EA8C4;
+    border:1px solid #D0DDE8; border-radius:5px; font-family:'Inter',sans-serif;
+    font-size:13px; cursor:pointer; transition:all .15s;
+  }
+  .s-btn-ghost:hover{ border-color:#7EA8C4; color:#4A5E72; }
+  .s-btn-row{ display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
+  .s-btn-danger{ background:#C8371A; border-color:#C8371A; color:#fff; }
+  .s-btn-danger:hover{ background:#A82D14; }
+
+  /* ── Predict panel ── */
+  .s-predict{
+    background:#fff; border:1px solid #D0DDE8;
+    border-top:4px solid #2C5F8A; border-radius:6px;
+    padding:18px; margin-bottom:20px;
+  }
+  .s-predict-title{
+    font-family:'Georgia',Georgia,serif;
+    font-size:17px; font-weight:700; color:#1A2332; margin-bottom:4px;
+  }
+  .s-predict-sub{ font-size:13px; color:#4A5E72; margin-bottom:14px; line-height:1.5; }
+  .s-predict-q{ font-size:13px; font-weight:600; color:#1A2332; margin-bottom:5px; }
+
+  /* ── Saved predictions display ── */
+  .s-pred-saved{
+    background:#EEF5F0; border:1px solid #BDD9C5; border-radius:5px;
+    padding:10px 14px; margin-bottom:8px;
+  }
+  .s-pred-saved-label{ font-size:10px; font-weight:700; color:#3A6B48; letter-spacing:.05em; text-transform:uppercase; margin-bottom:3px; }
+  .s-pred-saved-val{ font-size:13px; color:#1A2332; }
+
+  /* ── Think box ── */
+  .s-think{
+    background:#F7FAFE; border:1px solid #C5D8EE; border-radius:6px;
+    padding:16px; margin-bottom:16px;
+  }
+  .s-think-q{ font-size:14px; font-weight:600; color:#1A2332; margin-bottom:4px; line-height:1.5; }
+  .s-think-hint{ font-size:12px; color:#7EA8C4; margin-bottom:10px; font-style:italic; }
+  .s-think-saved{
+    display:flex; align-items:center; gap:6px;
+    font-size:12px; font-weight:600; color:#4A7C59; margin-bottom:8px;
+  }
+  .s-think-resp{
+    background:#EEF5F0; border:1px solid #BDD9C5; border-radius:4px;
+    padding:8px 12px; font-size:13px; color:#1A2332; line-height:1.6;
+  }
+  .s-think-resp-label{ font-size:10px; font-weight:700; color:#3A6B48; text-transform:uppercase; letter-spacing:.04em; margin-bottom:3px; }
+
+  /* ── Output tabs ── */
+  .s-out-wrap{ margin-top:24px; }
+  .s-tabs{
+    display:flex; border-bottom:2px solid #D0DDE8;
+    gap:0; overflow-x:auto; margin-bottom:0;
+  }
+  .s-tab{
+    padding:10px 16px; font-size:13px; font-weight:500; color:#7EA8C4;
+    background:none; border:none; border-bottom:2px solid transparent;
+    cursor:pointer; white-space:nowrap; margin-bottom:-2px; transition:all .15s;
+  }
+  .s-tab:hover{ color:#2C5F8A; }
+  .s-tab.on{ color:#2C5F8A; border-bottom-color:#2C5F8A; font-weight:600; }
+  .s-tab-content{ padding:20px 0; }
+
+  /* ── Output content ── */
+  .s-narrative{ font-size:15px; line-height:1.8; color:#1A2332; }
+  .s-narrative p{ margin-bottom:14px; }
+  .s-dq-section{ margin-top:22px; padding-top:18px; border-top:1px solid #D0DDE8; }
+  .s-dq-title{ font-family:'Georgia',Georgia,serif; font-size:15px; font-weight:700; color:#C8371A; margin-bottom:10px; }
+  .s-pre{ font-size:13px; color:#1A2332; white-space:pre-wrap; line-height:1.8; background:#F7F8FA; border:1px solid #E0E8F0; border-radius:5px; padding:14px; }
+  .s-table{ width:100%; border-collapse:collapse; font-size:13px; }
+  .s-table th{ background:#E8F0F7; color:#2C5F8A; padding:8px 10px; text-align:left; border:1px solid #D0DDE8; font-size:11px; font-weight:700; letter-spacing:.04em; }
+  .s-table td{ padding:7px 10px; border:1px solid #E0E8F0; color:#1A2332; vertical-align:top; }
+  .s-table tr:nth-child(even) td{ background:#FAFCFE; }
+  .s-badge-h{ display:inline-block; padding:2px 7px; border-radius:10px; font-size:10px; font-weight:700; background:#FEEEEE; color:#C8371A; border:1px solid #F5BFBF; }
+  .s-badge-m{ display:inline-block; padding:2px 7px; border-radius:10px; font-size:10px; font-weight:700; background:#FEF6EE; color:#8B4513; border:1px solid #F5D9B8; }
+  .s-badge-l{ display:inline-block; padding:2px 7px; border-radius:10px; font-size:10px; font-weight:700; background:#EEF5F0; color:#3A6B48; border:1px solid #BDD9C5; }
+
+  /* ── Loading state ── */
+  .s-loading{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:48px 24px; gap:14px;
+  }
+  .s-loading-spinner{
+    width:36px; height:36px; border:3px solid #D0DDE8;
+    border-top-color:#2C5F8A; border-radius:50%;
+    animation:s-spin .8s linear infinite;
+  }
+  .s-loading-text{ font-size:14px; color:#4A5E72; font-weight:500; }
+  .s-loading-sub{ font-size:12px; color:#7EA8C4; }
+  @keyframes s-spin{ to{ transform:rotate(360deg); } }
+
+  /* ── Portfolio overlay ── */
+  .s-portfolio{
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(26,35,50,.95); z-index:200; overflow-y:auto;
+    padding:24px;
+  }
+  .s-port-inner{ max-width:720px; margin:0 auto; }
+  .s-port-hdr{ display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  .s-port-title{ font-family:'Georgia',Georgia,serif; font-size:22px; color:#fff; font-weight:700; }
+  .s-port-section{ background:#fff; border-radius:6px; padding:16px 18px; margin-bottom:12px; }
+  .s-port-sect-title{ font-size:11px; font-weight:700; color:#2C5F8A; text-transform:uppercase; letter-spacing:.06em; margin-bottom:10px; }
+  .s-port-label{ font-size:11px; font-weight:600; color:#7EA8C4; margin-top:10px; margin-bottom:3px; letter-spacing:.03em; }
+  .s-port-val{ font-size:14px; color:#1A2332; line-height:1.6; white-space:pre-wrap; }
+  .s-port-actions{ display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
+  .s-port-btn{ padding:10px 20px; border-radius:5px; font-family:'Inter',sans-serif; font-size:13px; font-weight:600; cursor:pointer; }
+  .s-port-print{ background:#2C5F8A; color:#fff; border:none; }
+  .s-port-copy{ background:transparent; border:1px solid rgba(255,255,255,.3); color:#fff; }
+  .s-port-close{ background:transparent; border:1px solid rgba(255,255,255,.2); color:rgba(255,255,255,.7); }
+  .s-port-note{ font-size:12px; color:rgba(255,255,255,.5); margin-top:10px; line-height:1.6; }
+  @media print{
+    .s-portfolio{ position:static; background:#fff; padding:0; }
+    .s-port-hdr button, .s-port-actions{ display:none; }
+    .s-port-title{ color:#1A2332; }
+    .s-port-inner{ max-width:100%; }
+  }
+
+  /* ── Inline SVG diagrams ── */
+  .s-svg-wrap{ overflow-x:auto; padding:4px 0; }
+  svg.concept-diagram{ max-width:100%; height:auto; }
+
+  /* ── Misc ── */
+  .s-divider{ height:1px; background:#D0DDE8; margin:20px 0; }
+  .s-ph{ display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px 24px; color:#7EA8C4; font-size:14px; gap:8px; }
+  .s-err{ color:#C8371A; padding:16px; background:#FEF0F0; border:1px solid #EEBDBD; border-radius:5px; font-size:14px; }
+  .s-info-pill{ display:inline-flex; align-items:center; gap:5px; padding:4px 10px; background:#E8F0F7; border-radius:12px; font-size:11px; color:#2C5F8A; font-weight:500; margin-bottom:12px; }
+  .s-warn-tip{ background:#FEF6EE; border:1px solid #F5D9B8; border-radius:4px; padding:8px 12px; font-size:12px; color:#7A4010; line-height:1.6; margin-bottom:14px; }
+  @media(max-width:600px){ .s-page{ padding:16px 14px 48px; } .s-mod-grid{ grid-template-columns:1fr 1fr; } .s-hdr{ padding:12px 14px; } }
+`;
+
+
+// SVG concept diagrams grounded in CYB-5620V slides
+const SVG_CRRM = `<svg class="concept-diagram" viewBox="0 0 660 120" xmlns="http://www.w3.org/2000/svg" font-family="Inter,sans-serif">
+  <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#2C5F8A"/></marker></defs>
+  <rect x="10" y="18" width="185" height="82" rx="6" fill="#E8F0F7" stroke="#2C5F8A" stroke-width="1.5"/>
+  <text x="103" y="40" text-anchor="middle" font-size="11" font-weight="700" fill="#2C5F8A">HAZARD ANALYSIS</text>
+  <text x="103" y="57" text-anchor="middle" font-size="10" fill="#4A5E72">Losses → Hazards</text>
+  <text x="103" y="71" text-anchor="middle" font-size="10" fill="#4A5E72">Control Structure</text>
+  <text x="103" y="85" text-anchor="middle" font-size="10" fill="#4A5E72">HCAs (STPA-Sec)</text>
+  <text x="103" y="109" text-anchor="middle" font-size="9" fill="#7EA8C4" font-style="italic">Understand · Analyze</text>
+  <line x1="197" y1="59" x2="233" y2="59" stroke="#2C5F8A" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="235" y="18" width="185" height="82" rx="6" fill="#EEF5F0" stroke="#4A7C59" stroke-width="1.5"/>
+  <text x="328" y="40" text-anchor="middle" font-size="11" font-weight="700" fill="#3A6B48">LOSS SCENARIO</text>
+  <text x="328" y="55" text-anchor="middle" font-size="11" font-weight="700" fill="#3A6B48">ASSESSMENT</text>
+  <text x="328" y="71" text-anchor="middle" font-size="10" fill="#4A5E72">Adversary → HCA</text>
+  <text x="328" y="85" text-anchor="middle" font-size="10" fill="#4A5E72">→ Hazard → Loss</text>
+  <text x="328" y="109" text-anchor="middle" font-size="9" fill="#4A7C59" font-style="italic">Apply · Evaluate</text>
+  <line x1="422" y1="59" x2="458" y2="59" stroke="#4A7C59" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="460" y="18" width="185" height="82" rx="6" fill="#F3EEF8" stroke="#5B3480" stroke-width="1.5"/>
+  <text x="553" y="40" text-anchor="middle" font-size="11" font-weight="700" fill="#5B3480">ASSURANCE CASES</text>
+  <text x="553" y="57" text-anchor="middle" font-size="10" fill="#4A5E72">Claim → Evidence</text>
+  <text x="553" y="71" text-anchor="middle" font-size="10" fill="#4A5E72">→ Argument → SHALL</text>
+  <text x="553" y="85" text-anchor="middle" font-size="10" fill="#4A5E72">NIST 800-53 control</text>
+  <text x="553" y="109" text-anchor="middle" font-size="9" fill="#5B3480" font-style="italic">Evaluate · Create</text>
+</svg>`;
+
+const SVG_STPA_CHAIN = `<svg class="concept-diagram" viewBox="0 0 600 78" xmlns="http://www.w3.org/2000/svg" font-family="Inter,sans-serif">
+  <defs><marker id="ch" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#1A2332"/></marker></defs>
+  <rect x="4" y="8" width="118" height="58" rx="5" fill="#E8F0F7" stroke="#2C5F8A" stroke-width="1.5"/>
+  <text x="63" y="27" text-anchor="middle" font-size="10" font-weight="700" fill="#2C5F8A">LOSSES</text>
+  <text x="63" y="42" text-anchor="middle" font-size="9" fill="#4A5E72">Mission-level</text>
+  <text x="63" y="55" text-anchor="middle" font-size="9" fill="#4A5E72">bad outcomes</text>
+  <line x1="124" y1="37" x2="142" y2="37" stroke="#1A2332" stroke-width="1.5" marker-end="url(#ch)"/>
+  <rect x="144" y="8" width="118" height="58" rx="5" fill="#EEF5F0" stroke="#3A6B48" stroke-width="1.5"/>
+  <text x="203" y="27" text-anchor="middle" font-size="10" font-weight="700" fill="#3A6B48">HAZARDS</text>
+  <text x="203" y="42" text-anchor="middle" font-size="9" fill="#4A5E72">System states</text>
+  <text x="203" y="55" text-anchor="middle" font-size="9" fill="#4A5E72">→ losses</text>
+  <line x1="264" y1="37" x2="282" y2="37" stroke="#1A2332" stroke-width="1.5" marker-end="url(#ch)"/>
+  <rect x="284" y="8" width="118" height="58" rx="5" fill="#FEF6EE" stroke="#8B4513" stroke-width="1.5"/>
+  <text x="343" y="27" text-anchor="middle" font-size="10" font-weight="700" fill="#8B4513">HCAs</text>
+  <text x="343" y="42" text-anchor="middle" font-size="9" fill="#4A5E72">4 failure types</text>
+  <text x="343" y="55" text-anchor="middle" font-size="9" fill="#4A5E72">per control action</text>
+  <line x1="404" y1="37" x2="422" y2="37" stroke="#1A2332" stroke-width="1.5" marker-end="url(#ch)"/>
+  <rect x="424" y="8" width="130" height="58" rx="5" fill="#F3EEF8" stroke="#5B3480" stroke-width="1.5"/>
+  <text x="489" y="27" text-anchor="middle" font-size="10" font-weight="700" fill="#5B3480">LOSS SCENARIOS</text>
+  <text x="489" y="42" text-anchor="middle" font-size="9" fill="#4A5E72">Adversary → HCA</text>
+  <text x="489" y="55" text-anchor="middle" font-size="9" fill="#4A5E72">→ Hazard → Loss</text>
+</svg>`;
+
+const SVG_CONTROL_STRUCTURE = `<svg class="concept-diagram" viewBox="0 0 480 230" xmlns="http://www.w3.org/2000/svg" font-family="Inter,sans-serif">
+  <defs>
+    <marker id="ca2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#C8371A"/></marker>
+    <marker id="fb2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#4A7C59"/></marker>
+  </defs>
+  <rect x="140" y="8" width="200" height="46" rx="5" fill="#E8F0F7" stroke="#2C5F8A" stroke-width="1.5"/>
+  <text x="240" y="28" text-anchor="middle" font-size="12" font-weight="700" fill="#1A2332">HUMAN OPERATOR</text>
+  <text x="240" y="45" text-anchor="middle" font-size="10" fill="#4A5E72">ENGAGE / HALT commands</text>
+  <line x1="240" y1="56" x2="240" y2="80" stroke="#C8371A" stroke-width="1.5" marker-end="url(#ca2)"/>
+  <text x="258" y="72" font-size="9" fill="#C8371A">Control Action</text>
+  <rect x="140" y="82" width="200" height="46" rx="5" fill="#E8F0F7" stroke="#2C5F8A" stroke-width="1.5"/>
+  <text x="240" y="102" text-anchor="middle" font-size="12" font-weight="700" fill="#1A2332">C2 SOFTWARE NODE</text>
+  <text x="240" y="119" text-anchor="middle" font-size="10" fill="#4A5E72">relay · validate · audit log</text>
+  <line x1="134" y1="105" x2="134" y2="68" stroke="#4A7C59" stroke-width="1.5" marker-end="url(#fb2)"/>
+  <text x="78" y="90" font-size="9" fill="#4A7C59">Feedback /</text>
+  <text x="78" y="102" font-size="9" fill="#4A7C59">Status</text>
+  <line x1="240" y1="130" x2="240" y2="154" stroke="#C8371A" stroke-width="1.5" marker-end="url(#ca2)"/>
+  <rect x="140" y="156" width="200" height="46" rx="5" fill="#E8F0F7" stroke="#2C5F8A" stroke-width="1.5"/>
+  <text x="240" y="176" text-anchor="middle" font-size="12" font-weight="700" fill="#1A2332">UGV PLATFORM</text>
+  <text x="240" y="193" text-anchor="middle" font-size="10" fill="#4A5E72">sensor · weapon · mobility</text>
+  <line x1="134" y1="179" x2="134" y2="142" stroke="#4A7C59" stroke-width="1.5" marker-end="url(#fb2)"/>
+  <line x1="240" y1="204" x2="240" y2="216" stroke="#1A2332" stroke-width="1"/>
+  <rect x="140" y="216" width="200" height="12" rx="2" fill="#1A2332"/>
+  <text x="240" y="226" text-anchor="middle" font-size="9" fill="#fff">PHYSICAL DOMAIN</text>
+  <rect x="358" y="64" width="112" height="106" rx="5" fill="#FEF0F0" stroke="#EEBDBD" stroke-width="1"/>
+  <text x="414" y="82" text-anchor="middle" font-size="10" font-weight="700" fill="#C8371A">4 HCA TYPES</text>
+  <text x="414" y="98" text-anchor="middle" font-size="9" fill="#4A5E72">1. Provided when</text>
+  <text x="414" y="111" text-anchor="middle" font-size="9" fill="#4A5E72">   shouldn't be</text>
+  <text x="414" y="124" text-anchor="middle" font-size="9" fill="#4A5E72">2. Not provided</text>
+  <text x="414" y="137" text-anchor="middle" font-size="9" fill="#4A5E72">   when should</text>
+  <text x="414" y="150" text-anchor="middle" font-size="9" fill="#4A5E72">3. Wrong timing</text>
+  <text x="414" y="163" text-anchor="middle" font-size="9" fill="#4A5E72">4. Wrong duration</text>
+  <line x1="342" y1="117" x2="356" y2="117" stroke="#EEBDBD" stroke-width="1" stroke-dasharray="3,2"/>
+</svg>`;
+
+function BloomBadge({ level }) {
+  const map = {
+    remember:   { cls:"bloom-remember",   label:"Remember",   icon:"📌" },
+    understand: { cls:"bloom-understand", label:"Understand", icon:"💡" },
+    apply:      { cls:"bloom-apply",      label:"Apply",      icon:"🔧" },
+    analyze:    { cls:"bloom-analyze",    label:"Analyze",    icon:"🔬" },
+    evaluate:   { cls:"bloom-evaluate",   label:"Evaluate",   icon:"⚖️" },
+  };
+  const b = map[level] || map.understand;
+  return <span className={`bloom-badge ${b.cls}`}>{b.icon} {b.label}</span>;
+}
+
+function PH({ t }) {
+  return <div className="s-ph"><span style={{fontSize:28,opacity:.3}}>◯</span><span>{t}</span></div>;
+}
+
+function TeachCard({ tabKey, teach, mode }) {
+  const t = teach[tabKey];
+  if (!t || mode !== "student") return null;
+  return (
+    <div className="s-teach">
+      {t.bloom && <BloomBadge level={t.bloom} />}
+      <div className="s-teach-title">{t.title}</div>
+      <div className="s-teach-body" dangerouslySetInnerHTML={{__html: t.body}} />
+      {t.svg === "crrm"       && <div className="s-diagram-card" style={{marginTop:12,marginBottom:0}}><div className="s-diagram-label">CRRM Process Flow — Module 4</div><div className="s-svg-wrap" dangerouslySetInnerHTML={{__html:SVG_CRRM}} /></div>}
+      {t.svg === "stpa_chain" && <div className="s-diagram-card" style={{marginTop:12,marginBottom:0}}><div className="s-diagram-label">STPA-Sec Element Chain — Module 6</div><div className="s-svg-wrap" dangerouslySetInnerHTML={{__html:SVG_STPA_CHAIN}} /></div>}
+      {t.svg === "control"    && <div className="s-diagram-card" style={{marginTop:12,marginBottom:0}}><div className="s-diagram-label">Control Structure Hierarchy — Module 6</div><div className="s-svg-wrap" dangerouslySetInnerHTML={{__html:SVG_CONTROL_STRUCTURE}} /></div>}
+    </div>
+  );
+}
+
+function ThinkBox({ tabKey, teach, mode, thinkResponses, setThinkText, thinkRevealed, revealTab }) {
+  const t = teach[tabKey];
+  if (!t || !t.think || mode !== "student") return null;
+  const revealed = thinkRevealed[tabKey];
+  const hasText  = (thinkResponses[tabKey] || "").trim().length > 0;
+  if (revealed) return (
+    <div className="s-think" style={{marginBottom:16}}>
+      <div className="s-think-saved">✓ Your response saved — compare it against the analysis below</div>
+      {hasText && <><div className="s-think-resp-label">Your answer</div><div className="s-think-resp">{thinkResponses[tabKey]}</div></>}
+    </div>
+  );
+  return (
+    <div className="s-think">
+      <div className="s-think-q">💭 {t.think}</div>
+      <div className="s-think-hint">Optional — write your thinking before the AI analysis appears. Saved to your portfolio.</div>
+      <textarea className="s-ta" rows={3}
+        value={thinkResponses[tabKey] || ""}
+        onChange={e=>setThinkText(tabKey, e.target.value)}
+        placeholder="Type your thoughts here…" />
+      <div className="s-btn-row" style={{marginTop:8}}>
+        <button className="s-btn-primary" style={{flex:1,padding:"9px"}} onClick={()=>revealTab(tabKey)}>
+          {hasText ? "Save & see analysis" : "Skip — show analysis"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PredictPanel({ predLosses, setPredLosses, predMitre, setPredMitre, predSaved, setPredSaved, loading, onGenerate }) {
+  if (predSaved) return (
+    <div className="s-predict">
+      <div className="s-predict-title">Your predictions are saved</div>
+      <div className="s-predict-sub">As you work through each tab, compare what you expected against what the AI generated. The gap is where learning happens.</div>
+      <div className="s-pred-saved">
+        <div className="s-pred-saved-label">Losses you predicted</div>
+        <div className="s-pred-saved-val">{predLosses || "(none entered)"}</div>
+      </div>
+      <div className="s-pred-saved" style={{marginTop:8}}>
+        <div className="s-pred-saved-label">MITRE technique you expected first</div>
+        <div className="s-pred-saved-val">{predMitre || "(none entered)"}</div>
+      </div>
+    </div>
+  );
+  return (
+    <div className="s-predict">
+      <div className="s-predict-title">Before you see the analysis — make your predictions</div>
+      <div className="s-predict-sub">Optional but important. Writing what you think will happen before seeing the AI answer trains you to reason independently — a core skill for any systems engineer or acquisition professional.</div>
+      <div className="s-field">
+        <div className="s-predict-q">What do you think the top losses (L-statements) will be?</div>
+        <textarea className="s-ta" rows={2}
+          value={predLosses}
+          onChange={e=>setPredLosses(e.target.value)}
+          placeholder="e.g. L-1: Friendly casualties due to unauthorized ENGAGE, L-2: Mission failure…" />
+      </div>
+      <div className="s-field" style={{marginBottom:0}}>
+        <div className="s-predict-q">What MITRE ATT&CK technique do you expect to appear first?</div>
+        <textarea className="s-ta" rows={1}
+          value={predMitre}
+          onChange={e=>setPredMitre(e.target.value)}
+          placeholder="e.g. T1566.001 Spearphishing, T0836 Modify Parameter…" />
+      </div>
+      <div className="s-btn-row">
+        <button className="s-btn-primary" style={{flex:2}} disabled={loading}
+          onClick={()=>{ setPredSaved(true); onGenerate(); }}>
+          {loading ? "Generating analysis…" : "Save predictions & generate"}
+        </button>
+        <button className="s-btn-ghost" disabled={loading} onClick={()=>onGenerate()}>Skip</button>
+      </div>
+    </div>
+  );
+}
+
+function StudentWizard({ wizStep, setWizStep, mk, setMk, mod, scen, setScen, sys, setSys, actor, setActor, soph, setSoph, extra, setExtra, checks, toggle, loading, teach, ACTOR_TIPS, MODULES, SOPH }) {
+  const ARTIFACT_ITEMS = [
+    { k:"usecase",   label:"Map who does what",            desc:"Use Case Diagram — actors, functions, attack intercept points",    check:"usecase",   bloom:"understand" },
+    { k:"sequence",  label:"Trace the attack timeline",    desc:"Sequence Diagram — step-by-step from initial access to impact",   check:"sequence",  bloom:"analyze"    },
+    { k:"stpa",      label:"Apply STPA-Sec methodology",   desc:"Losses · Hazards · Control Structure · HCAs · Loss Scenarios",    check:"stpa",      bloom:"analyze"    },
+    { k:"assurance", label:"Build Assurance Cases",        desc:"Claim → Evidence → Argument → SHALL Req · Closes CRRM loop",     check:"assurance", bloom:"evaluate"   },
+    { k:"mitre",     label:"Map MITRE ATT&CK techniques",  desc:"Adversary tactics and techniques — ICS + Enterprise matrices",    check:"mitre",     bloom:"apply"      },
+    { k:"req",       label:"Write security requirements",  desc:"SHALL statements traceable to NIST 800-53 and DoD policy",        check:"req",       bloom:"evaluate"   },
+    { k:"coa",       label:"Identify courses of action",   desc:"FOREST/Sentinel defensive techniques — likelihood vs consequence", check:"coa",       bloom:"evaluate"   },
+    { k:"bdd",       label:"Model system architecture",    desc:"Block Definition Diagram — blocks and security interfaces",        check:"bdd",       bloom:"understand" },
+  ];
+  return (
+    <div>
+      {wizStep === 1 && <>
+        <TeachCard tabKey="step1" teach={teach} mode="student" />
+        <div className="s-section-title">Choose your mission</div>
+        <div className="s-section-sub">Select the module your class is working on. Each uses a different system, scenario set, and adversary context.</div>
+        <div className="s-mod-grid">
+          {Object.entries(MODULES).map(([key,m]) => (
+            <button key={key} className={"s-mod-card"+(mk===key?" on":"")}
+              style={{"--mc":m.color}} onClick={()=>setMk(key)}>
+              <div className="s-mod-day">{m.day}</div>
+              <div className="s-mod-name">{m.label}</div>
+              <div className="s-mod-focus">{m.focus.split(":")[0]}</div>
+            </button>
+          ))}
+        </div>
+        <button className="s-btn-primary" onClick={()=>setWizStep(2)}>Continue with {mod.label} →</button>
+      </>}
+
+      {wizStep === 2 && <>
+        <TeachCard tabKey="step2actor" teach={teach} mode="student" />
+        <div className="s-section-title">Define the threat</div>
+        <div className="s-section-sub">Choose a scenario, the system under attack, and the adversary. Your selections shape every artifact the AI generates.</div>
+        <div className="s-field">
+          <label className="s-label">Scenario</label>
+          <select className="s-select" value={scen} onChange={e=>setScen(e.target.value)}>
+            <option value="">— Choose a scenario —</option>
+            {mod.scenarios.map(s=><option key={s.value} value={s.value}>{s.label}</option>)}
+          </select>
+        </div>
+        <div className="s-field">
+          <label className="s-label">System under attack</label>
+          <select className="s-select" value={sys} onChange={e=>setSys(e.target.value)}>
+            <option value="">— Choose a system —</option>
+            {mod.systems.map(s=><option key={s.value} value={s.value}>{s.label}</option>)}
+          </select>
+        </div>
+        <div className="s-field">
+          <label className="s-label">Threat actor</label>
+          <select className="s-select" value={actor} onChange={e=>setActor(e.target.value)}>
+            <option value="">— Choose a threat actor —</option>
+            {mod.actors.map(a=><option key={a.value} value={a.value}>{a.label}</option>)}
+          </select>
+          {actor && ACTOR_TIPS[actor] && <div className="s-actor-tip">ℹ {ACTOR_TIPS[actor]}</div>}
+        </div>
+        <TeachCard tabKey="step2soph" teach={teach} mode="student" />
+        <div className="s-field">
+          <label className="s-label">Threat sophistication</label>
+          <input type="range" className="s-slider" min={1} max={5} value={soph} onChange={e=>setSoph(Number(e.target.value))} />
+          <div className="s-slider-labels"><span>Script Kiddie</span><span>Nation-State APT</span></div>
+          <div style={{textAlign:"center",marginTop:6}}><span className="s-soph-display">{SOPH[soph]}</span></div>
+        </div>
+        <div className="s-btn-row">
+          <button className="s-btn-ghost" onClick={()=>setWizStep(1)}>← Back</button>
+          <button className="s-btn-primary" style={{flex:1}} onClick={()=>setWizStep(3)}>Choose analysis →</button>
+        </div>
+      </>}
+
+      {wizStep === 3 && <>
+        <TeachCard tabKey="step3" teach={teach} mode="student" />
+        <div className="s-section-title">What do you want to analyze?</div>
+        <div className="s-section-sub">Each artifact maps to a Bloom's taxonomy level. Select what your exercise requires.</div>
+        <div className="s-artifact-list">
+          {ARTIFACT_ITEMS.map(({k,label,desc,check,bloom})=>(
+            <label key={k} className={"s-artifact-item"+(checks[check]?" on":"")}>
+              <input type="checkbox" checked={!!checks[check]} onChange={()=>toggle(check)}/>
+              <div style={{flex:1}}>
+                <div className="s-artifact-name">{label}</div>
+                <div className="s-artifact-desc">{desc}</div>
+                <div style={{marginTop:4}}><BloomBadge level={bloom} /></div>
+              </div>
+            </label>
+          ))}
+        </div>
+        <div className="s-field">
+          <label className="s-label">Additional context (optional)</label>
+          <textarea className="s-ta" value={extra} onChange={e=>setExtra(e.target.value)}
+            placeholder="Exercise phase, specific vulnerability, anything your instructor highlighted…" />
+        </div>
+        <div className="s-btn-row">
+          <button className="s-btn-ghost" onClick={()=>setWizStep(2)}>← Back</button>
+          <button className="s-btn-primary" style={{flex:1}} disabled={loading} onClick={()=>setWizStep(3)}>
+            {loading ? "Generating…" : "Continue to predictions →"}
+          </button>
+        </div>
+      </>}
+    </div>
+  );
+}
+
+function Portfolio({ mod, actor, soph, predLosses, predMitre, thinkResponses, reflection, setReflection, setShowPortfolio, SOPH }) {
+  const thinkLabels = {
+    narrative:"Adversity chain — my description", stpa:"STPA-Sec reflection",
+    diagrams:"Detection opportunity I identified", mitre:"MITRE — key technique analysis",
+    req:"Requirement rewrite and verification", coa:"COA prioritization reasoning",
+  };
+  const portfolioText = [
+    `CYB-5620V · STUDENT PORTFOLIO`, `Generated: ${new Date().toLocaleString()}`,
+    `Module: ${mod.fullLabel}`, `Threat: ${actor||"Not specified"} · ${SOPH[soph]}`,
+    ``, `=== MY PREDICTIONS ===`,
+    `Losses: ${predLosses||"(none)"}`, `MITRE: ${predMitre||"(none)"}`, ``,
+    ...Object.entries(thinkResponses).filter(([,v])=>v.trim()).map(([k,v])=>[
+      `=== ${(thinkLabels[k]||k).toUpperCase()} ===`, v, ``
+    ]).flat(),
+    `=== MY REFLECTION ===`, reflection||"(none)",
+  ].join("\n");
+  return (
+    <div className="s-portfolio">
+      <div className="s-port-inner">
+        <div className="s-port-hdr">
+          <div className="s-port-title">Student Portfolio</div>
+          <button className="s-port-btn s-port-close" onClick={()=>setShowPortfolio(false)}>✕ Close</button>
+        </div>
+        <div className="s-port-section">
+          <div className="s-port-sect-title">Scenario</div>
+          <div className="s-port-label">Module</div><div className="s-port-val">{mod.fullLabel}</div>
+          <div className="s-port-label">Threat actor</div><div className="s-port-val">{actor||"Not specified"} — {SOPH[soph]}</div>
+          <div className="s-port-label">Generated</div><div className="s-port-val">{new Date().toLocaleString()}</div>
+        </div>
+        <div className="s-port-section">
+          <div className="s-port-sect-title">My Predictions</div>
+          <div className="s-port-label">Losses I predicted</div><div className="s-port-val">{predLosses||"(none entered)"}</div>
+          <div className="s-port-label">MITRE technique I expected first</div><div className="s-port-val">{predMitre||"(none entered)"}</div>
+        </div>
+        {Object.entries(thinkResponses).filter(([,v])=>v.trim()).length > 0 && (
+          <div className="s-port-section">
+            <div className="s-port-sect-title">My Analysis Responses</div>
+            {Object.entries(thinkResponses).filter(([,v])=>v.trim()).map(([k,v])=>(
+              <React.Fragment key={k}>
+                <div className="s-port-label">{thinkLabels[k]||k}</div>
+                <div className="s-port-val">{v}</div>
+              </React.Fragment>
+            ))}
+          </div>
+        )}
+        <div className="s-port-section">
+          <div className="s-port-sect-title">My Final Reflection</div>
+          <div className="s-port-label">What did I learn? What surprised me? What would I do differently?</div>
+          <textarea className="s-ta" rows={5} value={reflection}
+            onChange={e=>setReflection(e.target.value)}
+            placeholder="Write your overall reflection here…" />
+        </div>
+        <div className="s-port-actions">
+          <button className="s-port-btn s-port-print" onClick={()=>window.print()}>🖨 Print / Save as PDF</button>
+          <button className="s-port-btn s-port-copy" onClick={()=>navigator.clipboard.writeText(portfolioText)}>📋 Copy as text</button>
+          <button className="s-port-btn s-port-close" onClick={()=>setShowPortfolio(false)}>Close</button>
+        </div>
+        <div className="s-port-note">To save as PDF: Print → destination → "Save as PDF".<br/>Submit this as your exercise after-action report.</div>
+      </div>
+    </div>
+  );
+}
+
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function MBSEBuilder() {
   const mermaidReady = useMermaid();
@@ -646,7 +1315,7 @@ export default function MBSEBuilder() {
   const [acq,   setAcq]   = useState("");
   const [role,  setRole]  = useState("");
   const [extra, setExtra] = useState("");
-  const [checks, setChecks] = useState({ usecase:true, sequence:true, bdd:true, mitre:true, req:true, coa:false, stpa:true });
+  const [checks, setChecks] = useState({ usecase:true, sequence:true, bdd:true, mitre:true, req:true, coa:false, stpa:true, assurance:true });
 
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState("Narrative");
@@ -688,7 +1357,7 @@ export default function MBSEBuilder() {
         req:       extractSection(full, "SECURITY REQUIREMENTS"),
         coa:       extractSection(full, "COURSES OF ACTION"),
         stpa:      extractSection(full, "STPA[- ]SEC ANALYSIS"),
-
+        assurance: extractSection(full, "ASSURANCE CASES"),
         dq:        extractSection(full, "DISCUSSION QUESTIONS"),
       });
     } catch (e) { setRaw("ERROR: " + e.message); setParsed({ error: e.message }); }
@@ -696,7 +1365,6 @@ export default function MBSEBuilder() {
   };
 
   const copy = txt => { navigator.clipboard.writeText(txt || raw); setCopied(true); setTimeout(() => setCopied(false), 2000); };
-  const PH = ({ t }) => <div className="ph2"><div style={{ fontSize:30, opacity:0.18 }}>⬡</div><p>{t}</p></div>;
 
   // ── Renderers ───────────────────────────────────────────────────────────────
   const rNarrative = () => {
@@ -704,8 +1372,8 @@ export default function MBSEBuilder() {
     if (parsed.error) return <div style={{ color:"#ff4444", padding:13, fontFamily:"'Share Tech Mono',monospace", fontSize:12 }}>ERROR: {parsed.error}</div>;
     return (
       <div style={{ padding:13 }}>
-        <TeachCard tabKey="narrative" />
-        <ThinkBox tabKey="narrative" />
+        <TeachCard tabKey="narrative" teach={TEACH} mode={mode} />
+        <ThinkBox tabKey="narrative" teach={TEACH} mode={mode} thinkResponses={thinkResponses} setThinkText={setThinkText} thinkRevealed={thinkRevealed} revealTab={revealTab} darkMode={darkMode} />
         {(mode==="instructor" || thinkRevealed["narrative"] || !TEACH["narrative"]?.think) && <>
           <div style={{ fontFamily:"'Orbitron',monospace", fontSize:10, color:mod.color, letterSpacing:2, marginBottom:8 }}>▸ {mod.fullLabel.toUpperCase()}</div>
           <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:15, lineHeight:1.8 }}>
@@ -725,8 +1393,8 @@ export default function MBSEBuilder() {
     if (!parsed.stpa||parsed.stpa==="SKIP") return <PH t="STPA-Sec not selected" />;
     return (
       <div style={{ padding:13 }}>
-        <TeachCard tabKey="stpa" />
-        <ThinkBox tabKey="stpa" />
+        <TeachCard tabKey="stpa" teach={TEACH} mode={mode} />
+        <ThinkBox tabKey="stpa" teach={TEACH} mode={mode} thinkResponses={thinkResponses} setThinkText={setThinkText} thinkRevealed={thinkRevealed} revealTab={revealTab} darkMode={darkMode} />
         {(mode==="instructor" || thinkRevealed["stpa"] || !TEACH["stpa"]?.think) && <>
           <div className="st">▸ STPA-SEC CONTROL STRUCTURE ANALYSIS</div>
           <div style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:10, color:darkMode?"#4a7a99":"#334155", marginBottom:10 }}>// {mod.fullLabel} · CRRM Methodology //</div>
@@ -747,8 +1415,8 @@ export default function MBSEBuilder() {
     if (!diags.length && !hasBdd) return <PH t="No diagrams selected" />;
     return (
       <div style={{ padding:13 }}>
-        <TeachCard tabKey="diagrams" />
-        <ThinkBox tabKey="diagrams" />
+        <TeachCard tabKey="diagrams" teach={TEACH} mode={mode} />
+        <ThinkBox tabKey="diagrams" teach={TEACH} mode={mode} thinkResponses={thinkResponses} setThinkText={setThinkText} thinkRevealed={thinkRevealed} revealTab={revealTab} darkMode={darkMode} />
         {(mode==="instructor" || thinkRevealed["diagrams"] || !TEACH["diagrams"]?.think) && <>
           <div style={{ background:"rgba(57,255,20,0.05)", border:"1px solid rgba(57,255,20,0.2)", borderRadius:3, padding:"6px 11px", marginBottom:12, fontFamily:"'Share Tech Mono',monospace", fontSize:10, color:"#86efac", lineHeight:1.8 }}>
             ▸ Right-click diagram → Copy Image → paste into PowerPoint / Word&nbsp;&nbsp;|&nbsp;&nbsp;↓ SVG → Chrome → Print → PDF for crisp vector quality
@@ -770,8 +1438,8 @@ export default function MBSEBuilder() {
     const lines = parsed.mitre.split("\n").filter(l => l.includes("|"));
     return (
       <div style={{ padding:13 }}>
-        <TeachCard tabKey="mitre" />
-        <ThinkBox tabKey="mitre" />
+        <TeachCard tabKey="mitre" teach={TEACH} mode={mode} />
+        <ThinkBox tabKey="mitre" teach={TEACH} mode={mode} thinkResponses={thinkResponses} setThinkText={setThinkText} thinkRevealed={thinkRevealed} revealTab={revealTab} darkMode={darkMode} />
         {(mode==="instructor" || thinkRevealed["mitre"] || !TEACH["mitre"]?.think) && <>
           <div className="st">▸ MITRE ATT&CK — {mod.label.toUpperCase()}</div>
           <table className="tbl">
@@ -796,8 +1464,8 @@ export default function MBSEBuilder() {
     if (!parsed.req||parsed.req==="SKIP") return <PH t="Security Requirements not selected" />;
     return (
       <div style={{ padding:13 }}>
-        <TeachCard tabKey="req" />
-        <ThinkBox tabKey="req" />
+        <TeachCard tabKey="req" teach={TEACH} mode={mode} />
+        <ThinkBox tabKey="req" teach={TEACH} mode={mode} thinkResponses={thinkResponses} setThinkText={setThinkText} thinkRevealed={thinkRevealed} revealTab={revealTab} darkMode={darkMode} />
         {(mode==="instructor" || thinkRevealed["req"] || !TEACH["req"]?.think) && <>
           <div className="st">▸ SECURITY REQUIREMENTS — {mod.label.toUpperCase()}</div>
           <pre style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:darkMode?"#c8dde8":"#0f172a", whiteSpace:"pre-wrap", lineHeight:1.8 }}>{parsed.req}</pre>
@@ -811,12 +1479,26 @@ export default function MBSEBuilder() {
     if (!parsed.coa||parsed.coa==="SKIP") return <PH t="Courses of Action not selected" />;
     return (
       <div style={{ padding:13 }}>
-        <TeachCard tabKey="coa" />
-        <ThinkBox tabKey="coa" />
+        <TeachCard tabKey="coa" teach={TEACH} mode={mode} />
+        <ThinkBox tabKey="coa" teach={TEACH} mode={mode} thinkResponses={thinkResponses} setThinkText={setThinkText} thinkRevealed={thinkRevealed} revealTab={revealTab} darkMode={darkMode} />
         {(mode==="instructor" || thinkRevealed["coa"] || !TEACH["coa"]?.think) && <>
           <div className="st" style={{color:"#ff6b35"}}>▸ COURSES OF ACTION — {mod.label.toUpperCase()}</div>
           <pre style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:darkMode?"#c8dde8":"#0f172a", whiteSpace:"pre-wrap", lineHeight:1.8 }}>{parsed.coa}</pre>
         </>}
+      </div>
+    );
+  };
+
+  const rAssurance = () => {
+    if (!parsed||parsed.error) return <PH t="Generate a scenario first" />;
+    if (!parsed.assurance||parsed.assurance==="SKIP") return <PH t="Assurance Cases not selected" />;
+    return (
+      <div style={{ padding:13 }}>
+        <div className="st" style={{color:"#a78bfa"}}>▸ CRRM ASSURANCE CASES — {mod.label.toUpperCase()}</div>
+        <div style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:10, color:darkMode?"#4a7a99":"#334155", marginBottom:10 }}>
+          // Claim → Evidence → Argument → SHALL Requirement · Reduces Loss Scenario Likelihood //
+        </div>
+        <pre style={{ background:darkMode?"rgba(167,139,250,0.04)":"rgba(91,52,128,0.04)", border:"1px solid "+(darkMode?"rgba(167,139,250,0.2)":"rgba(91,52,128,0.2)"), borderRadius:3, padding:12, fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:darkMode?"#c8dde8":"#0f172a", whiteSpace:"pre-wrap", lineHeight:1.9 }}>{parsed.assurance}</pre>
       </div>
     );
   };
@@ -830,18 +1512,9 @@ export default function MBSEBuilder() {
     </>
   );
 
-  const renderers = { "Narrative":rNarrative, "STPA-Sec":rStpa, "Diagrams":rDiagrams, "MITRE Matrix":rMitre, "Requirements":rReqs, "Courses of Action":rCoa, "Raw":rRaw };
+  const renderers = { "Narrative":rNarrative, "STPA-Sec":rStpa, "Assurance Cases":rAssurance, "Diagrams":rDiagrams, "MITRE Matrix":rMitre, "Requirements":rReqs, "Courses of Action":rCoa, "Raw":rRaw };
 
   // ── Phase 1: Student Wizard ───────────────────────────────────────────────
-  const ARTIFACT_ITEMS = [
-    { k:"usecase",  label:"Who does what",                       desc:"Use Case Diagram (Mermaid flowchart)",               check:"usecase" },
-    { k:"sequence", label:"Trace the attack sequence",           desc:"Attack Sequence Diagram (Mermaid)",                  check:"sequence" },
-    { k:"stpa",     label:"Apply STPA-Sec methodology",          desc:"Losses · Hazards · HCAs · Loss Scenarios",           check:"stpa" },
-    { k:"mitre",    label:"Map MITRE ATT&CK techniques",         desc:"ICS + Enterprise tactic/technique mapping",          check:"mitre" },
-    { k:"req",      label:"Write security requirements",         desc:"SHALL statements · NIST 800-53 · DoDI traceability", check:"req" },
-    { k:"coa",      label:"Identify defensive options",          desc:"Courses of Action · FOREST/Sentinel techniques",     check:"coa" },
-    { k:"bdd",      label:"Model the system architecture",       desc:"Block Definition Diagram (SysML BDD)",               check:"bdd" },
-  ];
 
   const ACTOR_TIPS = {
     fancy_bear:"APT28 / Sofacy — Russian GRU, ops since 2008, XAgent implant, spearphish+credential harvest",
@@ -898,335 +1571,276 @@ export default function MBSEBuilder() {
   // ── Teaching cards — grounded in actual CYB-5620V slide content ──────────
   const TEACH = {
     step1: {
-      icon: "🎯",
-      title: "WHY MODULE SELECTION MATTERS",
-      body: `In CYB-5620V, each module builds on the CRRM process — Cyber Resilient Risk Management. The module you pick determines which <b>real system</b> you'll analyze, which <b>threats</b> are relevant, and which <b>STPA-Sec methodology</b> applies. Think of it as choosing your mission brief. Day 1 modules (M2–M5) focus on threats and policy. Day 2 (M6–M8) apply full CRRM to actual weapon systems. Pick the one your class is currently covering.`
+      bloom: "remember",
+      title: "Why module selection matters",
+      body: `In CYB-5620V, each module builds on the CRRM process — Cyber Resilient Risk Management. The module you pick determines which <b>real system</b> you'll analyze, which <b>threats</b> are relevant, and which <b>STPA-Sec methodology</b> applies. Day 1 modules (M2–M5) focus on threats and policy. Day 2 (M6–M8) apply full CRRM to actual weapon systems. Pick the one your class is currently covering.`,
     },
     step2actor: {
-      icon: "⚔️",
-      title: "UNDERSTANDING THREAT ACTORS",
-      body: `The threat actor defines <b>how</b> the attack happens. Per Module 2, threats range from Tier 1 (opportunistic script kiddies) to Tier 5 (nation-state with zero-day capability and OT-specific tools). APT28/Fancy Bear — the most common actor in this course — has operated since 2008, uses the XAgent implant, and has demonstrated capability against ICS/OT systems. The actor you choose shapes the entire STPA-Sec adversity chain: adversary action → HCA → hazard → loss.`
+      bloom: "understand",
+      title: "Understanding threat actors",
+      body: `The threat actor defines <b>how</b> the attack happens. Per Module 2, threats range from Tier 1 (opportunistic) to Tier 5 (nation-state with zero-day capability and OT-specific tools). APT28/Fancy Bear has operated since 2008, uses the XAgent implant, and has demonstrated capability against ICS/OT systems. The actor you choose shapes the entire STPA-Sec adversity chain: adversary action → HCA → hazard → loss.`,
     },
     step2soph: {
-      icon: "📊",
-      title: "THREAT SOPHISTICATION SCALE",
-      body: `From the Module 2 slides: Tier 1 uses publicly available tools and basic techniques. Tier 4 (APT level) conducts persistent multi-phase campaigns, exploits zero-days, and has OT-specific knowledge. Tier 5 is nation-state — co-evolving, capable of custom malware like Stuxnet or Industroyer. <b>Higher sophistication means fewer detection opportunities and longer dwell time</b> — this directly affects how you design your Loss Scenarios in STPA-Sec.`
+      bloom: "understand",
+      title: "What the sophistication scale means",
+      body: `From the Module 2 slides: Tier 1 uses publicly available tools and basic techniques. Tier 4 (APT level) conducts persistent multi-phase campaigns, exploits zero-days, and has OT-specific knowledge. Tier 5 is nation-state — co-evolving, capable of custom malware like Stuxnet or Industroyer. <b>Higher sophistication means fewer detection opportunities and longer dwell time</b> — this directly affects how you design your Loss Scenarios.`,
     },
     step3: {
-      icon: "🔬",
-      title: "CHOOSING YOUR ANALYSIS ARTIFACTS",
-      body: `CRRM (from Module 4) is a process — Hazard Analysis → Loss Scenario Assessment → Assurance Cases. Each artifact you select is a piece of that process. <b>STPA-Sec</b> is the analytical core: Losses → Hazards → Control Structure → Hazardous Control Actions → Loss Scenarios. <b>MITRE ATT&CK</b> maps adversary TTPs to your scenario. <b>Security Requirements</b> close the loop to contracts and DoDI compliance. Select what your exercise requires — you don't need all of them every time.`
+      bloom: "apply",
+      title: "How each artifact maps to CRRM",
+      body: `CRRM (from Module 4) is a three-step process — Hazard Analysis → Loss Scenario Assessment → Assurance Cases. Each artifact you select corresponds to a step. <b>STPA-Sec</b> is the analytical core. <b>MITRE ATT&CK</b> maps adversary TTPs. <b>Security Requirements</b> close the loop to acquisition policy and DoDI compliance. Each artifact also maps to a Bloom's taxonomy level — shown below.`,
+      svg: "crrm",
     },
     narrative: {
-      icon: "📖",
-      title: "READ THIS FIRST — THE ADVERSITY CHAIN",
-      body: `The narrative shows you the <b>adversity chain</b>: how an adversary moves from initial access through the control structure to mission impact. As you read, look for: (1) the initial access vector — how did they get in? (2) the pivot — how did they move from IT to OT/C2? (3) the control action affected — ENGAGE, HALT, or sensor data? (4) the mission loss — fratricide, denial failure, or data exfil? This chain is what STPA-Sec is designed to surface before the adversary exploits it.`,
-      think: `Before you move on: In your own words, describe the adversary's path from initial access to mission impact. What was the weakest link in the control structure?`
+      bloom: "understand",
+      title: "How to read the adversity chain",
+      body: `The narrative shows you the <b>adversity chain</b>: how an adversary moves from initial access through the control structure to mission impact. As you read, look for four things: (1) the initial access vector — how did they get in? (2) the pivot — how did they move from IT to OT/C2? (3) the control action affected — ENGAGE, HALT, or sensor data? (4) the mission loss — fratricide, denial failure, or data exfil? This chain is exactly what STPA-Sec is designed to surface before the adversary exploits it.`,
+      think: `In your own words, describe the adversary's path from initial access to mission impact. What was the single weakest link in the control structure, and why?`,
+      svg: "control",
     },
     stpa: {
-      icon: "⚙️",
-      title: "STPA-SEC — WHAT YOU'RE LOOKING AT",
-      body: `STPA-Sec (System-Theoretic Process Analysis for Security) asks: <b>what system states lead to unacceptable losses?</b> The five elements build on each other: <b>Losses</b> (L-statements) are mission-level outcomes the system must prevent — e.g., L-1: Friendly casualties. <b>Hazards</b> are system states that lead to losses. <b>Control Structure</b> maps who commands whom. <b>Hazardous Control Actions</b> (HCAs) are the 4 failure types for each command: provided when shouldn't, not provided when should, wrong timing, wrong duration. <b>Loss Scenarios</b> trace the adversary chain to specific HCAs.`,
-      think: `Compare the AI's loss list to what you predicted. Which L-statement surprised you most? Which HCA type — provided when shouldn't, not provided when should, wrong timing, or wrong duration — is hardest to detect, and why?`
+      bloom: "analyze",
+      title: "What you're looking at — STPA-Sec",
+      body: `STPA-Sec asks: <b>what system states lead to unacceptable losses?</b> The five elements build on each other in sequence. <b>Losses</b> (L-statements) are mission-level outcomes the system must prevent. <b>Hazards</b> are system states that lead to losses. <b>Control Structure</b> maps who commands whom — Operator → C2 → UGV → Physical Domain. <b>Hazardous Control Actions</b> (HCAs) identify the 4 failure modes per control command. <b>Loss Scenarios</b> trace the full adversary chain.`,
+      think: `Compare the AI's loss list to what you predicted before generating. Which L-statement surprised you most? Which of the 4 HCA types — provided when shouldn't, not provided when should, wrong timing, or wrong duration — is hardest to detect in an operational system, and why?`,
+      svg: "stpa_chain",
     },
     diagrams: {
-      icon: "📐",
-      title: "READING MBSE DIAGRAMS",
-      body: `These are <b>Model-Based Systems Engineering (MBSE)</b> artifacts — the same type your team would deliver in Cameo Systems Modeler under DoDI 5000.90. The <b>Use Case Diagram</b> shows actors (Operator, Attacker) and system functions — look for where the attacker intercepts or replaces the operator's actions. The <b>Sequence Diagram</b> shows the timeline of the attack — each arrow is a control action or feedback signal. The <b>BDD</b> shows system blocks and their security interfaces. Right-click any diagram → Copy Image → paste into your PowerPoint or Cameo model.`,
-      think: `In the sequence diagram, at which step could the attack have been detected or stopped? What control action or feedback signal would have flagged it?`
+      bloom: "understand",
+      title: "How to read MBSE artifacts",
+      body: `These are <b>Model-Based Systems Engineering (MBSE)</b> artifacts — the same type your team would deliver in Cameo Systems Modeler under DoDI 5000.90. The <b>Use Case Diagram</b> shows actors and system functions — look for where the attacker intercepts the operator's actions. The <b>Sequence Diagram</b> shows the attack timeline — each arrow is a control action or feedback signal. The <b>BDD</b> shows system blocks and security interfaces. Right-click any diagram → Copy Image → paste into PowerPoint or your Cameo model.`,
+      think: `In the sequence diagram, at which specific step could the attack have been detected or stopped earliest? What control action or feedback signal would have flagged the anomaly?`,
     },
     mitre: {
-      icon: "🗺️",
-      title: "MITRE ATT&CK — TWO MATRICES",
-      body: `MITRE ATT&CK has two matrices relevant to this course: <b>Enterprise</b> (IT systems — initial access, credential theft, lateral movement) and <b>ICS</b> (operational technology — modify parameter, inhibit response function, damage to property). Nation-state actors against DoD systems typically bridge both: they use Enterprise techniques to gain access, then ICS techniques to affect the physical domain. The technique IDs here (T1566, T0836, T0835) map directly to NSA/CISA alerts and DoD red team playbooks. They also feed your <b>Assurance Cases</b> — each technique is a threat your SHALL requirements must address.`,
-      think: `Pick the MITRE technique you think had the highest mission impact in this scenario. How would you write a single SHALL requirement that directly addresses it?`
+      bloom: "apply",
+      title: "MITRE ATT&CK — two matrices",
+      body: `MITRE ATT&CK has two matrices relevant to this course: <b>Enterprise</b> (IT — initial access, credential theft, lateral movement) and <b>ICS</b> (OT — modify parameter, inhibit response function, damage to property). Nation-state actors against DoD systems bridge both: Enterprise techniques gain access, ICS techniques cause physical effect. These technique IDs map directly to NSA/CISA alerts and DoD red team playbooks — and each one is a threat your Assurance Cases and SHALL requirements must address.`,
+      think: `Pick the MITRE technique that had the highest mission impact in this scenario. How would you write a single, specific, verifiable SHALL requirement that directly addresses it?`,
     },
     req: {
-      icon: "📋",
-      title: "SECURITY REQUIREMENTS — FROM ANALYSIS TO CONTRACT",
-      body: `Security requirements are how STPA-Sec analysis becomes <b>contractually enforceable</b>. Under DoDI 5000.90 and SEP Section 3.2.11, these SHALL statements go into the System Requirements Document (SRD) and ultimately into the contractor's SOW. Each requirement here traces to a NIST 800-53 control and a DoDI reference — that's the traceability chain from engineering analysis to acquisition policy. <b>A good requirement is specific, verifiable, and technically grounded</b> — not "the system shall be secure," but "the system SHALL authenticate every ENGAGE command using mutual TLS with ECDSA-signed tokens."`,
-      think: `Choose one requirement from this list. Rewrite it in your own words, then identify: (1) how you would verify it in a test, and (2) which STPA-Sec hazard it directly mitigates.`
+      bloom: "evaluate",
+      title: "From analysis to contract — security requirements",
+      body: `Security requirements are how STPA-Sec analysis becomes <b>contractually enforceable</b>. Under DoDI 5000.90 and SEP Section 3.2.11, these SHALL statements go into the System Requirements Document (SRD) and the contractor's SOW. Each requirement traces to a NIST 800-53 control and a DoDI reference — that's the traceability chain from engineering analysis to acquisition policy. <b>A good requirement is specific, verifiable, and technically grounded</b>: not "the system shall be secure," but "the system SHALL authenticate every ENGAGE command using mutual TLS with ECDSA-signed tokens, rejecting any unsigned command with an operator alert."`,
+      think: `Choose one requirement from this list. Rewrite it in your own words — make it more specific if you can. Then identify: (1) how you would verify it in a test event, and (2) which specific STPA-Sec hazard it directly mitigates.`,
     },
     coa: {
-      icon: "🛡️",
-      title: "COURSES OF ACTION — SCRE TECHNIQUES",
-      body: `COAs in SCRE aren't just mitigations — they're <b>resilience techniques</b> from the FOREST framework (Sense → Isolate → Options → Evaluate → Readiness → Execute → Self-test). Module 4 introduces the Sentinel Pattern: a mission-aware detection system that monitors the control structure for anomalous HCAs. Module 7 (SDAD) builds full resilience architecture using these COAs. When you evaluate COAs, ask: does this <b>reduce loss scenario likelihood</b> (Assurance Case approach) or <b>reduce consequence</b> (Sentinel/FOREST approach)? The strongest defenses do both.`,
-      think: `Which COA would have the most impact on the specific Loss Scenario (LS-1) in this analysis? What would prevent you from implementing it in an MTA rapid acquisition program?`
+      bloom: "evaluate",
+      title: "Courses of action — SCRE resilience techniques",
+      body: `COAs in SCRE aren't just mitigations — they're <b>resilience techniques</b> from the FOREST framework: Sense → Isolate → Options → Evaluate → Readiness → Execute → Self-test. The Sentinel Pattern (Module 4) is a mission-aware detection system that monitors the control structure for anomalous HCAs. When you evaluate COAs, ask two questions: does this <b>reduce the likelihood</b> of the loss scenario (Assurance Case approach), or does it <b>reduce the consequence</b> once an HCA occurs (Sentinel/FOREST approach)? The strongest defenses address both.`,
+      think: `Which COA from this list would have the most impact on Loss Scenario LS-1 in this analysis? What single acquisition constraint — cost, schedule, or technical maturity — would be most likely to prevent you from implementing it under an MTA rapid acquisition program?`,
+    },
+    assurance: {
+      bloom: "evaluate",
+      title: "Assurance Cases — closing the CRRM loop",
+      body: `Assurance Cases are the third and final step of CRRM, following Hazard Analysis and Loss Scenario Assessment. Each case makes a <b>verifiable claim</b> that a specific security property holds, backs it with <b>evidence</b> (test results, inspections, analysis), connects them through an <b>argument</b>, and closes with a traceable <b>SHALL requirement</b>. Per Module 6 (ELO.15.E), Assurance Cases are the primary mechanism for <em>reducing the likelihood</em> of Loss Scenarios — they are not optional documentation, they are engineering artifacts that reduce program risk. Under DoDI 5000.80 (MTA), they must be verified by the Government LSE at each milestone.`,
+      think: `Look at AC-1. Is the Claim specific enough to be tested? Could you verify the Evidence items in an actual test event? If you were the Government LSE reviewing this at a milestone, what additional evidence would you require before approving the claim?`,
     }
   };
 
-  // ── ThinkBox component — optional "think first" per tab ──────────────────
-  const ThinkBox = ({ tabKey }) => {
-    const t = TEACH[tabKey];
-    if (!t || !t.think || mode !== "student") return null;
-    const revealed = thinkRevealed[tabKey];
-    const hasText  = (thinkResponses[tabKey] || "").trim().length > 0;
-    if (revealed) return (
-      <div className="think-box">
-        <div className="think-saved">✓ YOUR RESPONSE SAVED — compare it against the AI analysis above</div>
-        {hasText && <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:10,color:_txtMuted,marginTop:6,lineHeight:1.6,padding:"5px 7px",background:_bgMod,borderRadius:2}}>
-          <div style={{color:_accent,fontSize:8,letterSpacing:1,marginBottom:3}}>YOUR ANSWER</div>
-          {thinkResponses[tabKey]}
-        </div>}
+
+  // ── Student mode render helpers ──────────────────────────────────────────
+  const studentRenderTab = (tabKey, rendered) => {
+    if (mode !== "student") return rendered;
+    return (
+      <div className="s-tab-content">
+        <TeachCard tabKey={tabKey} teach={TEACH} mode={mode} />
+        <ThinkBox tabKey={tabKey} teach={TEACH} mode={mode}
+          thinkResponses={thinkResponses} setThinkText={setThinkText}
+          thinkRevealed={thinkRevealed} revealTab={revealTab} />
+        {(thinkRevealed[tabKey] || !TEACH[tabKey]?.think) && rendered}
       </div>
     );
-    return (
-      <div className="think-box">
-        <div className="think-prompt">💭 {t.think}</div>
-        <div className="think-hint">Optional — jot your thinking before the AI analysis reveals. This gets saved to your portfolio.</div>
-        <textarea className="think-ta" rows={3}
-          value={thinkResponses[tabKey] || ""}
-          onChange={e=>setThinkText(tabKey, e.target.value)}
-          placeholder="Type your thoughts here..." />
-        <div className="think-actions">
-          <button className="think-reveal" onClick={()=>revealTab(tabKey)}>
-            {hasText ? "Save & See Analysis →" : "Skip — Show Analysis →"}
-          </button>
+  };
+
+  // ── Student mode output tabs ──────────────────────────────────────────────
+  const sRenderers = {
+    "Narrative": () => studentRenderTab("narrative", (() => {
+      if (!parsed) return <PH t="Generate a scenario to begin" />;
+      if (parsed.error) return <div className="s-err">Error: {parsed.error}</div>;
+      return (
+        <div className="s-narrative">
+          <div style={{fontFamily:"Georgia,serif",fontSize:13,fontWeight:700,color:mod.color,marginBottom:10}}>{mod.fullLabel}</div>
+          {(parsed.narrative||"").split("\n\n").map((p,i)=><p key={i}>{p}</p>)}
+          {parsed.dq && <div className="s-dq-section"><div className="s-dq-title">Discussion Questions</div><div style={{fontSize:14,color:"#4A5E72",lineHeight:1.8,whiteSpace:"pre-wrap"}}>{parsed.dq}</div></div>}
         </div>
-      </div>
-    );
+      );
+    })()),
+    "STPA-Sec": () => studentRenderTab("stpa", (() => {
+      if (!parsed||parsed.error) return <PH t="Generate a scenario first" />;
+      if (!parsed.stpa||parsed.stpa==="SKIP") return <PH t="STPA-Sec not selected" />;
+      return <pre className="s-pre">{parsed.stpa}</pre>;
+    })()),
+    "Assurance Cases": () => studentRenderTab("assurance", (() => {
+      if (!parsed||parsed.error) return <PH t="Generate a scenario first" />;
+      if (!parsed.assurance||parsed.assurance==="SKIP") return <PH t="Assurance Cases not selected" />;
+      return (
+        <div>
+          <div style={{background:"#F3EEF8",border:"1px solid #D9C5EE",borderRadius:5,padding:"8px 14px",marginBottom:14,fontSize:13,color:"#5B3480",lineHeight:1.7}}>
+            Each Assurance Case follows the CRRM structure: <b>Claim → Evidence → Argument → SHALL Requirement</b>. Together they close the loop from STPA-Sec analysis to contractually enforceable security requirements.
+          </div>
+          <pre className="s-pre">{parsed.assurance}</pre>
+        </div>
+      );
+    })()),
+    "Diagrams": () => studentRenderTab("diagrams", (() => {
+      if (!parsed||parsed.error) return <PH t="Generate a scenario first" />;
+      if (!mermaidReady) return <PH t="Loading diagram renderer…" />;
+      const diags = [
+        parsed.usecase&&parsed.usecase!=="SKIP"&&{code:parsed.usecase,title:"Use Case Diagram"},
+        parsed.sequence&&parsed.sequence!=="SKIP"&&{code:parsed.sequence,title:"Attack Sequence Diagram"},
+      ].filter(Boolean);
+      const hasBdd = parsed.bdd&&parsed.bdd!=="SKIP";
+      if (!diags.length&&!hasBdd) return <PH t="No diagrams selected" />;
+      return <div>
+        <div className="s-warn-tip">Right-click a diagram → Copy Image → paste into PowerPoint or Word.</div>
+        {diags.map((d,i)=><MermaidDiagram key={i} code={d.code} title={d.title} />)}
+        {hasBdd&&<div className="s-diagram-card"><div className="s-diagram-label">Block Definition Diagram (SysML)</div><pre className="s-pre" style={{margin:0}}>{parsed.bdd}</pre></div>}
+      </div>;
+    })()),
+    "MITRE Matrix": () => studentRenderTab("mitre", (() => {
+      if (!parsed||parsed.error) return <PH t="Generate a scenario first" />;
+      if (!parsed.mitre||parsed.mitre==="SKIP") return <PH t="MITRE mapping not selected" />;
+      const sevMap={initial:"h",execution:"h",persistence:"m",lateral:"m",exfil:"h",impact:"h",command:"m",discovery:"l",collection:"l",inhibit:"h",impair:"h"};
+      const lines=parsed.mitre.split("\n").filter(l=>l.includes("|"));
+      return <div>
+        <table className="s-table">
+          <thead><tr><th>Tactic</th><th>ID</th><th>Technique</th><th>Application</th></tr></thead>
+          <tbody>{lines.map((line,i)=>{
+            const cols=line.split("|").map(c=>c.trim()).filter(Boolean);
+            if(cols.length<3)return null;
+            const sev=Object.entries(sevMap).find(([k])=>(cols[0]||"").toLowerCase().includes(k))?.[1]||"l";
+            return <tr key={i}><td>{cols[0]}</td><td><span className={"s-badge-"+sev}>{cols[1]}</span></td><td>{cols[2]}</td><td style={{color:"#4A5E72",fontSize:12}}>{cols[3]||""}</td></tr>;
+          })}</tbody>
+        </table>
+        <div style={{fontSize:12,color:"#7EA8C4",marginTop:8}}>Import IDs into attack.mitre.org/navigator · Use ICS matrix for OT scenarios</div>
+      </div>;
+    })()),
+    "Requirements": () => studentRenderTab("req", (() => {
+      if (!parsed||parsed.error) return <PH t="Generate a scenario first" />;
+      if (!parsed.req||parsed.req==="SKIP") return <PH t="Requirements not selected" />;
+      return <pre className="s-pre">{parsed.req}</pre>;
+    })()),
+    "Courses of Action": () => studentRenderTab("coa", (() => {
+      if (!parsed||parsed.error) return <PH t="Generate a scenario first" />;
+      if (!parsed.coa||parsed.coa==="SKIP") return <PH t="Courses of Action not selected" />;
+      return <pre className="s-pre">{parsed.coa}</pre>;
+    })()),
+    "Raw": () => <div className="s-tab-content"><pre className="s-pre" style={{maxHeight:"50vh",overflowY:"auto"}}>{raw||"Raw output will appear here"}</pre></div>,
   };
 
-  // ── TeachCard component — shown at top of each tab in student mode ────────
-  const TeachCard = ({ tabKey }) => {
-    const t = TEACH[tabKey];
-    if (!t || mode !== "student") return null;
-    return (
-      <div className="teach-card">
-        <div className="teach-icon">{t.icon}</div>
-        <div className="teach-title">{t.title}</div>
-        <div className="teach-body" dangerouslySetInnerHTML={{__html: t.body}} />
-      </div>
-    );
-  };
-
-  // ── Portfolio — print/save view of student work ───────────────────────────
-  const Portfolio = () => {
-    const tabLabels = {
-      narrative:"Scenario Narrative", stpa:"STPA-Sec Analysis",
-      diagrams:"Diagrams", mitre:"MITRE ATT&CK", req:"Security Requirements", coa:"Courses of Action"
-    };
-    const thinkLabels = {
-      narrative:"Adversity chain in your own words",
-      stpa:"STPA-Sec reflection", diagrams:"Detection opportunity",
-      mitre:"Key technique analysis", req:"Requirement rewrite",
-      coa:"COA prioritization"
+  if (mode === "student") {
+    const stepProgress = (n) => {
+      const cls = ["s-prog-step", wizStep===n?"active":wizStep>n?"done":""].filter(Boolean).join(" ");
+      return (
+        <React.Fragment key={n}>
+          {n>1&&<div className={`s-prog-line${wizStep>n?" done":""}`}/>}
+          <div className={cls}>
+            <div className="s-prog-num">{wizStep>n?"✓":n}</div>
+            <span>{["Mission","Threat","Analyze"][n-1]}</span>
+          </div>
+        </React.Fragment>
+      );
     };
 
-    const portfolioText = [
-      `CYB-5620V MBSE CYBER SCENARIO BUILDER — STUDENT PORTFOLIO`,
-      `Generated: ${new Date().toLocaleString()}`,
-      `Module: ${mod.fullLabel}`,
-      `Threat Actor: ${actor || "Not specified"} | Sophistication: ${SOPH[soph]}`,
-      ``,
-      `=== MY PREDICTIONS (before generation) ===`,
-      `Expected losses: ${predLosses || "(none entered)"}`,
-      `Expected MITRE technique: ${predMitre || "(none entered)"}`,
-      ``,
-      ...Object.entries(thinkResponses).filter(([,v])=>v.trim()).map(([k,v])=>[
-        `=== MY ANALYSIS: ${(thinkLabels[k]||k).toUpperCase()} ===`,
-        v, ``
-      ]).flat(),
-      `=== MY REFLECTION ===`,
-      reflection || "(none entered)",
-    ].join("\n");
-
     return (
-      <div className="portfolio-overlay">
-        <div className="portfolio-inner">
-          <div className="portfolio-hdr">
-            <div className="portfolio-title">⬡ STUDENT PORTFOLIO</div>
-            <button className="portfolio-close" onClick={()=>setShowPortfolio(false)}>✕ Close</button>
-          </div>
-
-          <div className="portfolio-section">
-            <div className="portfolio-section-title">SCENARIO PARAMETERS</div>
-            <div className="portfolio-label">Module</div>
-            <div className="portfolio-value">{mod.fullLabel}</div>
-            <div className="portfolio-label">Threat Actor</div>
-            <div className="portfolio-value">{actor || "Not specified"} — {SOPH[soph]}</div>
-            <div className="portfolio-label">Generated</div>
-            <div className="portfolio-value">{new Date().toLocaleString()}</div>
-          </div>
-
-          <div className="portfolio-section">
-            <div className="portfolio-section-title">MY PREDICTIONS</div>
-            <div className="portfolio-label">Losses I predicted before generating</div>
-            <div className="portfolio-value">{predLosses || "(none entered)"}</div>
-            <div className="portfolio-label">MITRE technique I expected first</div>
-            <div className="portfolio-value">{predMitre || "(none entered)"}</div>
-          </div>
-
-          {Object.entries(thinkResponses).filter(([,v])=>v.trim()).length > 0 && (
-            <div className="portfolio-section">
-              <div className="portfolio-section-title">MY ANALYSIS RESPONSES</div>
-              {Object.entries(thinkResponses).filter(([,v])=>v.trim()).map(([k,v])=>(
-                <React.Fragment key={k}>
-                  <div className="portfolio-label">{thinkLabels[k] || k}</div>
-                  <div className="portfolio-value">{v}</div>
-                </React.Fragment>
-              ))}
+      <>
+        <style>{studentCss}</style>
+        {showPortfolio && <Portfolio mod={mod} actor={actor} soph={soph} predLosses={predLosses} predMitre={predMitre} thinkResponses={thinkResponses} reflection={reflection} setReflection={setReflection} setShowPortfolio={setShowPortfolio} SOPH={SOPH} />}
+        <div className="s-root">
+          {/* Header */}
+          <div className="s-hdr">
+            <div className="s-hdr-left">
+              <div className="s-course-label">CYB-5620V · War-U / DAU</div>
+              <div className="s-title">MBSE <em>Cyber</em> Scenario Builder</div>
             </div>
-          )}
-
-          <div className="portfolio-section">
-            <div className="portfolio-section-title">MY FINAL REFLECTION</div>
-            <div className="portfolio-label">What did I learn? What surprised me? What would I change?</div>
-            <textarea className="think-ta" rows={5}
-              value={reflection}
-              onChange={e=>setReflection(e.target.value)}
-              placeholder="Write your overall reflection on this scenario analysis..." />
-          </div>
-
-          <div className="portfolio-actions">
-            <button className="port-btn port-print" onClick={()=>window.print()}>🖨 Print / Save as PDF</button>
-            <button className="port-btn port-copy" onClick={()=>navigator.clipboard.writeText(portfolioText)}>📋 Copy as Text</button>
-            <button className="port-btn port-close-btn" onClick={()=>setShowPortfolio(false)}>Close</button>
-          </div>
-
-          <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:9,color:_txtMuted,marginTop:12,lineHeight:1.7}}>
-            To save as PDF: Click Print → Change destination to "Save as PDF" → Save.<br/>
-            This portfolio captures your predictions, analysis responses, and reflection — submit it as your exercise deliverable.
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const StudentWizard = () => (
-    <div className="pb">
-      <div className="wiz-steps">
-        {[1,2,3].map(n => wizStepEl(n, ["Mission","Threat","Analyze"]))}
-      </div>
-
-      {/* Step 1 — Choose Mission */}
-      {wizStep === 1 && <>
-        <TeachCard tabKey="step1" />
-        <div className="lbl" style={{marginTop:0}}>Choose Your Mission</div>
-        <div className="mod-cards">
-          {Object.entries(MODULES).map(([key,m]) => (
-            <button key={key} className={"mod-card"+(mk===key?" on":"")}
-              style={{"--c":m.color}} onClick={()=>{ setMk(key); }}>
-              <div className="mod-card-title">{m.label}</div>
-              <div className="mod-card-day">{m.day}</div>
-              <div className="mod-card-focus">{m.focus.split(":")[0]}</div>
-            </button>
-          ))}
-        </div>
-        <div className="wiz-nav">
-          <button className="wiz-next" onClick={()=>setWizStep(2)}>
-            SELECT: {mod.label} →
-          </button>
-        </div>
-      </>}
-
-      {/* Step 2 — Define Threat */}
-      {wizStep === 2 && <>
-        <TeachCard tabKey="step2actor" />
-        <div className="lbl" style={{marginTop:0}}>What&apos;s the Scenario?</div>
-        <select value={scen} onChange={e=>setScen(e.target.value)}>
-          <option value="">— Choose a scenario —</option>
-          {mod.scenarios.map(s=><option key={s.value} value={s.value}>{s.label}</option>)}
-        </select>
-        <label className="lbl">System Under Attack</label>
-        <select value={sys} onChange={e=>setSys(e.target.value)}>
-          <option value="">— Choose a system —</option>
-          {mod.systems.map(s=><option key={s.value} value={s.value}>{s.label}</option>)}
-        </select>
-        <label className="lbl">Who Is the Adversary?</label>
-        <select value={actor} onChange={e=>setActor(e.target.value)}>
-          <option value="">— Choose a threat actor —</option>
-          {mod.actors.map(a=><option key={a.value} value={a.value}>{a.label}</option>)}
-        </select>
-        {actor && ACTOR_TIPS[actor] && (
-          <div className="actor-tip">ℹ {ACTOR_TIPS[actor]}</div>
-        )}
-        <TeachCard tabKey="step2soph" />
-        <label className="lbl">How Sophisticated Is the Threat?</label>
-        <input type="range" min={1} max={5} value={soph} onChange={e=>setSoph(Number(e.target.value))} />
-        <div className="sl"><span>Script Kiddie</span><span>Nation-State APT</span></div>
-        <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:9,color:_accent,marginTop:4,textAlign:"center"}}>{SOPH[soph]}</div>
-        <div className="wiz-nav">
-          <button className="wiz-back" onClick={()=>setWizStep(1)}>← Back</button>
-          <button className="wiz-next" onClick={()=>setWizStep(3)}>Next: Choose Analysis →</button>
-        </div>
-      </>}
-
-      {/* Step 3 — Choose Artifacts */}
-      {wizStep === 3 && <>
-        <TeachCard tabKey="step3" />
-        <div className="lbl" style={{marginTop:0}}>What Do You Want to Analyze?</div>
-        <div className="artifact-ck">
-          {ARTIFACT_ITEMS.map(({k,label,desc,check})=>(
-            <label key={k} className={"artifact-item"+(checks[check]?" on":"")}>
-              <input type="checkbox" checked={!!checks[check]} onChange={()=>toggle(check)}/>
-              <div>
-                <div className="artifact-item-label">{label}</div>
-                <div className="artifact-item-desc">{desc}</div>
+            <div className="s-hdr-right">
+              <div className="s-mode-bar">
+                <button className="s-mode-btn" onClick={()=>switchMode("instructor")}>Instructor</button>
+                <button className="s-mode-btn on">Student</button>
               </div>
-            </label>
-          ))}
-        </div>
-        <label className="lbl">Additional Context</label>
-        <textarea className="ta" value={extra} onChange={e=>setExtra(e.target.value)}
-          placeholder="Exercise phase, specific vulnerability, anything your instructor highlighted..." />
-        <div className="wiz-nav">
-          <button className="wiz-back" onClick={()=>setWizStep(2)}>← Back</button>
-          <button className="wiz-next" disabled={loading} onClick={()=>setWizStep(3)}>
-            {loading ? "⬡ Analyzing..." : "⬡ Continue to Predict →"}
-          </button>
-        </div>
-      </>}
-    </div>
-  );
+              <button className="s-theme-btn" onClick={()=>setDarkMode(d=>!d)}>{darkMode?"☀":"☾"}</button>
+            </div>
+          </div>
 
-  // ── Phase 1: Predict Panel ────────────────────────────────────────────────
-  const PredictPanel = () => {
-    if (predSaved) return (
-      <div className="predict-panel">
-        <div className="predict-title">🎯 YOUR PREDICTIONS — SAVED</div>
-        <div className="predict-saved">
-          <div className="predict-saved-label">Losses you predicted</div>
-          <div>{predLosses || "(none entered)"}</div>
-        </div>
-        <div style={{marginTop:6}} className="predict-saved">
-          <div className="predict-saved-label">MITRE technique you expected</div>
-          <div>{predMitre || "(none entered)"}</div>
-        </div>
-        <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:9,color:_txtMuted,marginTop:6,lineHeight:1.7}}>
-          Compare these against the AI analysis as each tab unlocks. Where were you right? Where did it surprise you?
-        </div>
-      </div>
-    );
-    return (
-      <div className="predict-panel">
-        <div className="predict-title">🎯 BEFORE YOU GENERATE — MAKE YOUR PREDICTIONS</div>
-        <div className="predict-q" style={{color:_txt}}>What do you think the top losses (L-statements) will be?</div>
-        <textarea className="predict-ta" rows={2}
-          value={predLosses}
-          onChange={e=>setPredLosses(e.target.value)}
-          placeholder="e.g. L-1: Friendly casualties, L-2: Mission failure, L-3: System unavailability..." />
-        <div className="predict-q" style={{color:_txt,marginTop:8}}>What MITRE ATT&CK technique do you expect to appear first?</div>
-        <textarea className="predict-ta" rows={1}
-          value={predMitre}
-          onChange={e=>setPredMitre(e.target.value)}
-          placeholder="e.g. T1566.001 Spearphishing, T0836 Modify Parameter, T1078 Valid Accounts..." />
-        <div style={{display:"flex",gap:6,marginTop:8}}>
-          <button className="wiz-next" style={{flex:1}} onClick={()=>{ setPredSaved(true); generate(); }}>
-            {loading?"⬡ Generating...":"💾 Save Predictions & Generate"}
-          </button>
-          <button className="wiz-back" onClick={()=>{ generate(); }}>
-            Skip
-          </button>
-        </div>
-      </div>
-    );
-  };
+          {/* Progress bar */}
+          {!parsed && <div className="s-progress">{[1,2,3].map(n=>stepProgress(n))}</div>}
 
+          {/* Page */}
+          <div className="s-page">
+
+            {/* Config wizard (steps 1-3, before generate) */}
+            {!parsed && !loading && (
+              <StudentWizard wizStep={wizStep} setWizStep={setWizStep} mk={mk} setMk={setMk}
+                mod={mod} scen={scen} setScen={setScen} sys={sys} setSys={setSys}
+                actor={actor} setActor={setActor} soph={soph} setSoph={setSoph}
+                extra={extra} setExtra={setExtra} checks={checks} toggle={toggle}
+                loading={loading} teach={TEACH} ACTOR_TIPS={ACTOR_TIPS} MODULES={MODULES} SOPH={SOPH} />
+            )}
+
+            {/* Loading */}
+            {loading && (
+              <div className="s-loading">
+                <div className="s-loading-spinner"/>
+                <div className="s-loading-text">Building your scenario analysis…</div>
+                <div className="s-loading-sub">Claude is generating all selected artifacts — usually 1–2 minutes</div>
+              </div>
+            )}
+
+            {/* Predict panel — shown on step 3 before generate */}
+            {wizStep === 3 && !parsed && !loading && (
+              <>
+                <div className="s-divider"/>
+                <PredictPanel predLosses={predLosses} setPredLosses={setPredLosses}
+                  predMitre={predMitre} setPredMitre={setPredMitre}
+                  predSaved={predSaved} setPredSaved={setPredSaved}
+                  loading={loading} onGenerate={generate} />
+              </>
+            )}
+
+            {/* Output tabs — full width single column */}
+            {parsed && !loading && (
+              <>
+                {predSaved && (
+                  <PredictPanel predLosses={predLosses} setPredLosses={setPredLosses}
+                    predMitre={predMitre} setPredMitre={setPredMitre}
+                    predSaved={predSaved} setPredSaved={setPredSaved}
+                    loading={loading} onGenerate={generate} />
+                )}
+                <div className="s-out-wrap">
+                  <div className="s-tabs">
+                    {TABS.map(t=>(
+                      <button key={t} className={"s-tab"+(tab===t?" on":"")} onClick={()=>setTab(t)}>{t}</button>
+                    ))}
+                  </div>
+                  {sRenderers[tab]?.()}
+                </div>
+                <div className="s-divider"/>
+                <div className="s-btn-row">
+                  <button className="s-btn-primary" style={{flex:2}} onClick={()=>setShowPortfolio(true)}>
+                    📋 View & save portfolio
+                  </button>
+                  <button className="s-btn-secondary" onClick={()=>{
+                    setParsed(null); setRaw(""); setPredSaved(false);
+                    setPredLosses(""); setPredMitre("");
+                    setThinkResponses({}); setThinkRevealed({});
+                    setReflection(""); setWizStep(1); setTab("Narrative");
+                  }}>New scenario</button>
+                  <button className="s-btn-ghost" onClick={()=>setWizStep(2)}>← Change parameters</button>
+                </div>
+              </>
+            )}
+
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // ── Instructor mode render (unchanged) ───────────────────────────────────
   return (
     <>
       <style>{buildCss(darkMode)}</style>
-      {showPortfolio && <Portfolio />}
+      {showPortfolio && <Portfolio mod={mod} actor={actor} soph={soph} predLosses={predLosses} predMitre={predMitre} thinkResponses={thinkResponses} reflection={reflection} setReflection={setReflection} setShowPortfolio={setShowPortfolio} SOPH={SOPH} />}
       <div className="r">
         <div className="inner">
           <div className="hdr">
@@ -1235,150 +1849,73 @@ export default function MBSEBuilder() {
             <div className="sub">// M2: Threats · M3: Policy · M4: Approaches · M5: Pipeline · M6: Silverfish · M7: SDAD · M8: GAVIN //</div>
             <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,marginTop:8,flexWrap:"wrap"}}>
               <div className="mode-bar">
-                <button className={"mode-btn"+(mode==="instructor"?" on":"")} onClick={()=>switchMode("instructor")}>
-                  ◈ Instructor
-                </button>
-                <button className={"mode-btn"+(mode==="student"?" on":"")} onClick={()=>switchMode("student")}>
-                  ◉ Student
-                </button>
+                <button className={"mode-btn on"}>◈ Instructor</button>
+                <button className="mode-btn" onClick={()=>switchMode("student")}>◉ Student</button>
               </div>
-              <button className="theme-btn" onClick={()=>setDarkMode(d=>!d)} title="Toggle light/dark mode">
-                {darkMode ? "☀ LIGHT" : "☾ DARK"}
-              </button>
+              <button className="theme-btn" onClick={()=>setDarkMode(d=>!d)}>{darkMode?"☀ LIGHT":"☾ DARK"}</button>
             </div>
           </div>
-
-          {/* Module bar — instructor always, student only on step 1 shown via cards */}
-          {mode === "instructor" && (
-            <div className="mod-bar">
-              {Object.entries(MODULES).map(([key,m]) => (
-                <button key={key} className={"mb"+(mk===key?" on":"")} style={{"--c":m.color}}
-                  onClick={()=>setMk(key)} title={m.fullLabel}>
-                  {m.label}
-                </button>
-              ))}
-            </div>
-          )}
-
+          <div className="mod-bar">
+            {Object.entries(MODULES).map(([key,m]) => (
+              <button key={key} className={"mb"+(mk===key?" on":"")} style={{"--c":m.color}}
+                onClick={()=>setMk(key)} title={m.fullLabel}>{m.label}</button>
+            ))}
+          </div>
           <div className="grid">
-            {/* LEFT PANEL — config (instructor) or wizard (student) */}
-            <div className="panel" style={{ borderTop:`2px solid ${mod.color}` }}>
-              <div className="ph">
-                <div className="dot" style={{ background:mod.color, boxShadow:`0 0 6px ${mod.color}` }} />
-                <div className="pt" style={{ color:mod.color }}>
-                  {mode === "student" ? `STEP ${wizStep} OF 3 · ${["MISSION","THREAT","ANALYZE"][wizStep-1]}` : mod.label}
+            <div className="panel" style={{borderTop:`2px solid ${mod.color}`}}>
+              <div className="ph"><div className="dot" style={{background:mod.color,boxShadow:`0 0 6px ${mod.color}`}}/><div className="pt" style={{color:mod.color}}>{mod.label}</div></div>
+              <div className="pb">
+                <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:9,color:darkMode?"#4a7a99":"#64748b",lineHeight:1.6,marginBottom:8,padding:"5px 7px",background:darkMode?"rgba(0,0,0,0.2)":"rgba(0,0,0,0.04)",borderRadius:2}}>{mod.day} · {mod.focus}</div>
+                <label className="lbl">Scenario</label>
+                <select value={scen} onChange={e=>setScen(e.target.value)}>
+                  <option value="">— Select Scenario —</option>
+                  {mod.scenarios.map(s=><option key={s.value} value={s.value}>{s.label}</option>)}
+                </select>
+                <label className="lbl">System Under Analysis</label>
+                <select value={sys} onChange={e=>setSys(e.target.value)}>
+                  <option value="">— Select System —</option>
+                  {mod.systems.map(s=><option key={s.value} value={s.value}>{s.label}</option>)}
+                </select>
+                <label className="lbl">Threat Actor</label>
+                <select value={actor} onChange={e=>setActor(e.target.value)}>
+                  <option value="">— Select Actor —</option>
+                  {mod.actors.map(a=><option key={a.value} value={a.value}>{a.label}</option>)}
+                </select>
+                <label className="lbl">Acquisition Pathway</label>
+                <select value={acq} onChange={e=>setAcq(e.target.value)}>
+                  {ACQ_PATHWAYS.map(a=><option key={a.value} value={a.value}>{a.label}</option>)}
+                </select>
+                <label className="lbl">Analyst Role</label>
+                <select value={role} onChange={e=>setRole(e.target.value)}>
+                  {ROLES.map(r=><option key={r.value} value={r.value}>{r.label}</option>)}
+                </select>
+                <label className="lbl">Threat Tier</label>
+                <input type="range" min={1} max={5} value={soph} onChange={e=>setSoph(Number(e.target.value))} />
+                <div className="sl"><span>T1 OPPORTUNISTIC</span><span>T4 APT</span><span>T5 NATION-STATE</span></div>
+                <label className="lbl">MBSE Artifacts</label>
+                <div className="cks">
+                  {[["usecase","Use Case Diagram (Mermaid)"],["sequence","Attack Sequence Diagram"],["bdd","Block Definition Diagram (BDD)"],["mitre","MITRE ATT&CK Mapping"],["req","Security Requirements"],["coa","Courses of Action"],["stpa","STPA-Sec Analysis"],["assurance","Assurance Cases (CRRM)"]].map(([k,lbl])=>(
+                    <label key={k} className="ck"><input type="checkbox" checked={checks[k]} onChange={()=>toggle(k)}/><span>{lbl}</span></label>
+                  ))}
                 </div>
+                <label className="lbl">Context / Notes</label>
+                <textarea className="ta" value={extra} onChange={e=>setExtra(e.target.value)} placeholder="Exercise phase, specific CVE, protocol, student context..." />
+                <button className="gbtn" disabled={loading} onClick={generate} style={{borderColor:mod.color,color:mod.color}}>
+                  {loading ? "⬡ Generating..." : "⬡ Generate Scenario"}
+                </button>
               </div>
-
-              {mode === "instructor" ? (
-                <div className="pb">
-                  <div style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:9, color: darkMode?"#4a7a99":"#64748b", lineHeight:1.6, marginBottom:8, padding:"5px 7px", background: darkMode?"rgba(0,0,0,0.2)":"rgba(0,0,0,0.04)", borderRadius:2 }}>
-                    {mod.day} · {mod.focus}
-                  </div>
-                  <label className="lbl">Scenario</label>
-                  <select value={scen} onChange={e=>setScen(e.target.value)}>
-                    <option value="">— Select Scenario —</option>
-                    {mod.scenarios.map(s=><option key={s.value} value={s.value}>{s.label}</option>)}
-                  </select>
-                  <label className="lbl">System Under Analysis</label>
-                  <select value={sys} onChange={e=>setSys(e.target.value)}>
-                    <option value="">— Select System —</option>
-                    {mod.systems.map(s=><option key={s.value} value={s.value}>{s.label}</option>)}
-                  </select>
-                  <label className="lbl">Threat Actor</label>
-                  <select value={actor} onChange={e=>setActor(e.target.value)}>
-                    <option value="">— Select Actor —</option>
-                    {mod.actors.map(a=><option key={a.value} value={a.value}>{a.label}</option>)}
-                  </select>
-                  <label className="lbl">Acquisition Pathway</label>
-                  <select value={acq} onChange={e=>setAcq(e.target.value)}>
-                    {ACQ_PATHWAYS.map(a=><option key={a.value} value={a.value}>{a.label}</option>)}
-                  </select>
-                  <label className="lbl">Analyst Role</label>
-                  <select value={role} onChange={e=>setRole(e.target.value)}>
-                    {ROLES.map(r=><option key={r.value} value={r.value}>{r.label}</option>)}
-                  </select>
-                  <label className="lbl">Threat Tier</label>
-                  <input type="range" min={1} max={5} value={soph} onChange={e=>setSoph(Number(e.target.value))} />
-                  <div className="sl"><span>T1 OPPORTUNISTIC</span><span>T4 APT</span><span>T5 NATION-STATE</span></div>
-                  <label className="lbl">MBSE Artifacts</label>
-                  <div className="cks">
-                    {[["usecase","Use Case Diagram (Mermaid)"],["sequence","Attack Sequence Diagram"],["bdd","Block Definition Diagram (BDD)"],["mitre","MITRE ATT&CK Mapping"],["req","Security Requirements"],["coa","Courses of Action"],["stpa","STPA-Sec Analysis"]].map(([k,lbl])=>(
-                      <label key={k} className="ck"><input type="checkbox" checked={checks[k]} onChange={()=>toggle(k)}/><span>{lbl}</span></label>
-                    ))}
-                  </div>
-                  <label className="lbl">Context / Notes</label>
-                  <textarea className="ta" value={extra} onChange={e=>setExtra(e.target.value)} placeholder="Exercise phase, specific CVE, protocol, student context..." />
-                  <button className="gbtn" disabled={loading} onClick={generate}
-                    style={{ borderColor:mod.color, color:mod.color }}>
-                    {loading ? "⬡ Generating..." : "⬡ Generate Scenario"}
-                  </button>
-                </div>
-              ) : (
-                /* Student mode */
-                <>
-                  {wizStep <= 2 && <StudentWizard />}
-                  {wizStep === 3 && !parsed && !loading && (
-                    <div className="pb">
-                      <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:9,color:_accent,marginBottom:8,padding:"4px 6px",background:_bgMod,borderRadius:2}}>
-                        ✓ {mod.label} · {SOPH[soph].split(" — ")[0]}
-                      </div>
-                      <PredictPanel />
-                      <button className="wiz-back" style={{marginTop:6,width:"100%"}} onClick={()=>setWizStep(2)}>← Change Threat</button>
-                    </div>
-                  )}
-                  {wizStep === 3 && loading && (
-                    <div className="pb">
-                      <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:10,color:_accent,textAlign:"center",padding:"40px 0",lineHeight:2}}>
-                        ⬡ Generating your scenario...<br/>
-                        <span style={{fontSize:9,color:_txtMuted}}>Claude is building your analysis — usually 1-2 minutes</span>
-                      </div>
-                    </div>
-                  )}
-                  {wizStep === 3 && parsed && !loading && (
-                    <div className="pb">
-                      <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:9,color:_accent,marginBottom:8,padding:"4px 6px",background:_bgMod,borderRadius:2}}>
-                        ✓ {mod.label} · {SOPH[soph].split(" — ")[0]}
-                      </div>
-                      {predSaved && <PredictPanel />}
-                      <button className="wiz-next" style={{width:"100%",marginTop:8}} onClick={()=>setShowPortfolio(true)}>
-                        📋 View & Save Portfolio
-                      </button>
-                      <button className="wiz-next" style={{width:"100%",marginTop:6,background:"transparent",color:_accent}} onClick={()=>{
-                        setParsed(null); setRaw(""); setPredSaved(false);
-                        setPredLosses(""); setPredMitre("");
-                        setThinkResponses({}); setThinkRevealed({});
-                        setReflection("");
-                      }}>⬡ New Scenario</button>
-                      <button className="wiz-back" style={{width:"100%",marginTop:6}} onClick={()=>setWizStep(2)}>← Change Parameters</button>
-                    </div>
-                  )}
-                </>
-              )}
             </div>
-
-            {/* OUTPUT */}
-            <div className="panel out" style={{ borderTop:`2px solid ${mod.color}` }}>
-              {loading && <div className="lb" />}
+            <div className="panel out" style={{borderTop:`2px solid ${mod.color}`}}>
+              {loading && <div className="lb"/>}
               <div className="tabs">
-                {TABS.map(t => (
-                  <button key={t}
-                    className={"tab"+(tab===t?" on":"")}
-                    onClick={()=>setTab(t)}
-                  >{t}</button>
-                ))}
+                {TABS.map(t=><button key={t} className={"tab"+(tab===t?" on":"")} onClick={()=>setTab(t)}>{t}</button>)}
               </div>
-              <div className="tbody" style={{ padding:0 }}>
-                {renderers[tab]?.()}
-              </div>
+              <div className="tbody" style={{padding:0}}>{renderers[tab]?.()}</div>
             </div>
           </div>
-
           <div className="ftr">
-            CYB-5620V SECURE CYBER RESILIENT ENGINEERING · MBSE SCENARIO BUILDER · POWERED BY CLAUDE AI · FOR EDUCATIONAL USE<br/>
-            M2 ICS Threats · M3 SCRE Policy · M4 Approaches · M5 Pipeline · M6 Silverfish UGV · M7 Silverfish SDAD · M8 Guardian GAVIN<br/>
-            Diagrams render in-browser via Mermaid · Right-click → Copy Image → PowerPoint / Word
-
+            CYB-5620V SECURE CYBER RESILIENT ENGINEERING · MBSE SCENARIO BUILDER · POWERED BY CLAUDE AI<br/>
+            M2–M8 · Diagrams via Mermaid · Right-click → Copy Image → PowerPoint / Word
           </div>
         </div>
       </div>
