@@ -433,8 +433,8 @@ function buildPrompt(mk, scen, sys, actor, soph, acq, role, extra, checks) {
     + "===BLOCK DEFINITION DIAGRAM===\n" + (checks.bdd ? "ASCII BDD relevant to " + mod.fullLabel + ". Show Attacker, Target System blocks, Security/Resilience Control blocks with interfaces. Use MBSE BDD notation style." : "SKIP") + "\n\n"
     + "===MITRE ATTACK MAPPING===\n" + (checks.mitre ? "6-10 techniques most relevant to this module and scenario. Prefer ICS matrix for OT scenarios. Format each line exactly: Tactic | TechniqueID | Technique Name | How it applies to this specific scenario" : "SKIP") + "\n\n"
     + "===SECURITY REQUIREMENTS===\n" + (checks.req ? "6-8 SHALL requirements for " + mod.fullLabel + ". Table format: REQ-ID | SHALL statement (max 20 words) | Priority H/M/L | NIST 800-53 | DoDI. BE CONCISE." : "SKIP") + "\n\n"
+    + "===COURSES OF ACTION===\n" + (checks.coa ? "5-8 COAs for " + mod.fullLabel + ". Table: Name | Description | Effectiveness | Tradeoffs. Include SCRE techniques (FOREST, Sentinel, design patterns). BE CONCISE." : "SKIP") + "\n\n"
     + "===STPA-SEC ANALYSIS===\n" + (checks.stpa ? "CONCISE STPA-Sec for " + mod.fullLabel + " — BE BRIEF, use tables only, NO ASCII art, NO prose paragraphs:\n1. LOSSES: table of L-1 to L-4 only (ID | Statement | Type)\n2. HAZARDS: table of H-1 to H-4 only (ID | State | Constraint | Links To)\n3. CONTROL STRUCTURE: 3-line text summary only — Controller, Control Actions, Controlled Process. NO diagrams.\n4. HAZARDOUS CONTROL ACTIONS: ONE control action only (ENGAGE). Table of 4 HCA types (Type | Description | Hazard).\n5. LOSS SCENARIOS: TWO scenarios only (LS-1, LS-2). Format: Adversary Action | HCA | Hazard | Loss | MITRE TTPs. Keep each row under 20 words." : "SKIP") + "\n\n"
-    + "===COURSES OF ACTION===\n" + (checks.coa ? "5-8 COAs for " + mod.fullLabel + ". For each: Name | Description | Effectiveness | Tradeoffs. Include SCRE-specific techniques (FOREST, Sentinel, design patterns where relevant)." : "SKIP") + "\n\n"
 
     + "===DISCUSSION QUESTIONS===\n"
     + "5 discussion questions specifically aligned to " + mod.elos + ". Each question should reference specific content from " + mod.fullLabel + ", require application of CRRM/STPA-Sec methodology, and be suitable for a 30-40 minute class discussion.\n\n"
@@ -535,6 +535,36 @@ function buildCss(dark) {
   .unlock-bar{background:${dark?"rgba(0,212,255,0.04)":"rgba(3,105,161,0.04)"};border-bottom:1px solid ${border};padding:8px 13px;font-family:'Share Tech Mono',monospace;font-size:10px;color:${txtMuted};display:flex;align-items:center;justify-content:space-between;gap:10px;}
   .unlock-btn{background:transparent;border:1px solid ${accent};color:${accent};font-family:'Share Tech Mono',monospace;font-size:9px;padding:4px 10px;cursor:pointer;border-radius:2px;white-space:nowrap;transition:all 0.15s;letter-spacing:1px;}
   .unlock-btn:hover{background:${accent};color:${dark?"#040d14":"#fff"};}
+  .teach-card{background:${dark?"rgba(255,107,53,0.06)":"rgba(255,107,53,0.05)"};border:1px solid ${dark?"rgba(255,107,53,0.3)":"rgba(255,107,53,0.35)"};border-radius:3px;padding:10px 12px;margin-bottom:10px;}
+  .teach-icon{font-size:16px;margin-bottom:4px;}
+  .teach-title{font-family:'Orbitron',monospace;font-size:9px;color:#ff6b35;letter-spacing:2px;margin-bottom:5px;}
+  .teach-body{font-size:12px;color:${txt};line-height:1.7;}
+  .teach-body b{color:${dark?"#ffffff":"#0f172a"};}
+  .think-box{background:${dark?"rgba(0,212,255,0.03)":"rgba(3,105,161,0.04)"};border:1px solid ${dark?"rgba(0,212,255,0.15)":"rgba(3,105,161,0.2)"};border-radius:3px;padding:10px 12px;margin:10px 0;}
+  .think-prompt{font-size:12px;color:${txt};font-weight:600;margin-bottom:6px;line-height:1.5;}
+  .think-hint{font-family:'Share Tech Mono',monospace;font-size:9px;color:${txtMuted};margin-bottom:6px;font-style:italic;}
+  .think-ta{width:100%;background:${bgInner};border:1px solid ${border};color:${txt};font-family:'Rajdhani',sans-serif;font-size:13px;padding:6px 8px;border-radius:2px;outline:none;resize:vertical;min-height:48px;line-height:1.5;}
+  .think-ta:focus{border-color:${accent};}
+  .think-actions{display:flex;gap:6px;margin-top:6px;align-items:center;}
+  .think-reveal{background:${accent};border:none;color:${dark?"#040d14":"#fff"};font-family:'Orbitron',monospace;font-size:9px;padding:5px 12px;cursor:pointer;border-radius:2px;letter-spacing:1px;font-weight:700;}
+  .think-skip{background:transparent;border:1px solid ${border};color:${txtMuted};font-family:'Share Tech Mono',monospace;font-size:9px;padding:5px 10px;cursor:pointer;border-radius:2px;letter-spacing:1px;}
+  .think-skip:hover{border-color:${accent};color:${accent};}
+  .think-saved{font-family:'Share Tech Mono',monospace;font-size:9px;color:${accent};display:flex;align-items:center;gap:4px;}
+  .portfolio-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:${dark?"rgba(4,13,20,0.97)":"rgba(240,244,248,0.97)"};z-index:100;overflow-y:auto;padding:24px;}
+  .portfolio-inner{max-width:820px;margin:0 auto;}
+  .portfolio-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid ${border};}
+  .portfolio-title{font-family:'Orbitron',monospace;font-size:16px;color:${accent};letter-spacing:2px;}
+  .portfolio-close{background:transparent;border:1px solid ${border};color:${txtMuted};font-family:'Share Tech Mono',monospace;font-size:10px;padding:6px 12px;cursor:pointer;border-radius:2px;}
+  .portfolio-section{margin-bottom:18px;padding:12px 14px;background:${bgInner};border:1px solid ${border};border-radius:3px;}
+  .portfolio-section-title{font-family:'Orbitron',monospace;font-size:10px;color:${accent};letter-spacing:2px;margin-bottom:8px;}
+  .portfolio-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:${txtMuted};letter-spacing:1px;text-transform:uppercase;margin-top:8px;margin-bottom:3px;}
+  .portfolio-value{font-size:13px;color:${txt};line-height:1.6;white-space:pre-wrap;}
+  .portfolio-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;}
+  .port-btn{padding:9px 18px;font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;cursor:pointer;border-radius:2px;font-weight:700;}
+  .port-print{background:${accent};border:none;color:${dark?"#040d14":"#fff"};}
+  .port-copy{background:transparent;border:1px solid ${accent};color:${accent};}
+  .port-close-btn{background:transparent;border:1px solid ${border};color:${txtMuted};}
+  @media print{.portfolio-overlay{position:static;padding:0;}.portfolio-hdr button,.portfolio-actions{display:none;}.portfolio-inner{max-width:100%;}}
 
   .cks{display:flex;flex-direction:column;gap:3px;}
   .ck{display:flex;align-items:center;gap:7px;padding:3px 5px;border-radius:2px;cursor:pointer;font-size:13px;color:${txt};}
@@ -577,36 +607,33 @@ export default function MBSEBuilder() {
   const [darkMode, setDarkMode] = useState(false);
 
   // ── Phase 1: Mode & Wizard State ─────────────────────────────────────────
-  const [mode, setMode]           = useState("instructor"); // "instructor" | "student"
-  const [wizStep, setWizStep]     = useState(1);            // 1=Mission 2=Threat 3=Artifacts
+  const [mode, setMode]           = useState("instructor");
+  const [wizStep, setWizStep]     = useState(1);
   const [predLosses, setPredLosses] = useState("");
   const [predMitre,  setPredMitre]  = useState("");
   const [predSaved, setPredSaved] = useState(false);
-  const [unlockedTabs, setUnlockedTabs] = useState(["Narrative"]);
 
-  // Reset student flow when mode changes
+  // ── Phase 1: Student Learning State ──────────────────────────────────────
+  const [thinkResponses, setThinkResponses] = useState({});  // {tabKey: text}
+  const [thinkRevealed,  setThinkRevealed]  = useState({});  // {tabKey: bool}
+  const [reflection,     setReflection]     = useState("");  // final reflection
+  const [showPortfolio,  setShowPortfolio]  = useState(false);
+
+  const setThinkText = (k, v) => setThinkResponses(r => ({...r, [k]:v}));
+  const revealTab    = (k)    => setThinkRevealed(r  => ({...r, [k]:true}));
+
   const switchMode = (m) => {
     setMode(m);
     setWizStep(1);
     setPredSaved(false);
-    setUnlockedTabs(["Narrative"]);
     setParsed(null);
     setRaw("");
     setPredLosses("");
     setPredMitre("");
-  };
-
-  // Progressive unlock helper
-  const unlockNext = (currentTab) => {
-    const unlockMap = {
-      "Narrative":       ["Narrative","STPA-Sec"],
-      "STPA-Sec":        ["Narrative","STPA-Sec","Diagrams","MITRE Matrix"],
-      "Diagrams":        ["Narrative","STPA-Sec","Diagrams","MITRE Matrix","Requirements"],
-      "MITRE Matrix":    ["Narrative","STPA-Sec","Diagrams","MITRE Matrix","Requirements"],
-      "Requirements":    ["Narrative","STPA-Sec","Diagrams","MITRE Matrix","Requirements","Courses of Action"],
-      "Courses of Action": TABS,
-    };
-    setUnlockedTabs(unlockMap[currentTab] || TABS);
+    setThinkResponses({});
+    setThinkRevealed({});
+    setReflection("");
+    setShowPortfolio(false);
   };
 
   const [mk, setMk] = useState("m6");
@@ -665,12 +692,7 @@ export default function MBSEBuilder() {
         dq:        extractSection(full, "DISCUSSION QUESTIONS"),
       });
     } catch (e) { setRaw("ERROR: " + e.message); setParsed({ error: e.message }); }
-    finally {
-      setLoading(false);
-      // Instructor sees everything immediately; student starts with Narrative only
-      if (mode === "instructor") setUnlockedTabs(TABS);
-      else setUnlockedTabs(["Narrative"]);
-    }
+    finally { setLoading(false); }
   };
 
   const copy = txt => { navigator.clipboard.writeText(txt || raw); setCopied(true); setTimeout(() => setCopied(false), 2000); };
@@ -682,14 +704,18 @@ export default function MBSEBuilder() {
     if (parsed.error) return <div style={{ color:"#ff4444", padding:13, fontFamily:"'Share Tech Mono',monospace", fontSize:12 }}>ERROR: {parsed.error}</div>;
     return (
       <div style={{ padding:13 }}>
-        <div style={{ fontFamily:"'Orbitron',monospace", fontSize:10, color:mod.color, letterSpacing:2, marginBottom:8 }}>▸ {mod.fullLabel.toUpperCase()}</div>
-        <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:15, lineHeight:1.8 }}>
-          {(parsed.narrative||"").split("\n\n").map((p,i)=><p key={i} style={{marginBottom:11}}>{p}</p>)}
-        </div>
-        {parsed.dq && <div style={{ marginTop:14, paddingTop:12, borderTop:"1px solid #0f3a5c" }}>
-          <div style={{ fontFamily:"'Orbitron',monospace", fontSize:10, color:"#ff6b35", letterSpacing:2, marginBottom:7 }}>▸ DISCUSSION QUESTIONS</div>
-          <div style={{ fontSize:14, color:darkMode?"#4a7a99":"#334155", whiteSpace:"pre-wrap", lineHeight:1.8, fontFamily:"'Rajdhani',sans-serif" }}>{parsed.dq}</div>
-        </div>}
+        <TeachCard tabKey="narrative" />
+        <ThinkBox tabKey="narrative" />
+        {(mode==="instructor" || thinkRevealed["narrative"] || !TEACH["narrative"]?.think) && <>
+          <div style={{ fontFamily:"'Orbitron',monospace", fontSize:10, color:mod.color, letterSpacing:2, marginBottom:8 }}>▸ {mod.fullLabel.toUpperCase()}</div>
+          <div style={{ fontFamily:"'Rajdhani',sans-serif", fontSize:15, lineHeight:1.8 }}>
+            {(parsed.narrative||"").split("\n\n").map((p,i)=><p key={i} style={{marginBottom:11}}>{p}</p>)}
+          </div>
+          {parsed.dq && <div style={{ marginTop:14, paddingTop:12, borderTop:"1px solid #0f3a5c" }}>
+            <div style={{ fontFamily:"'Orbitron',monospace", fontSize:10, color:"#ff6b35", letterSpacing:2, marginBottom:7 }}>▸ DISCUSSION QUESTIONS</div>
+            <div style={{ fontSize:14, color:darkMode?"#4a7a99":"#334155", whiteSpace:"pre-wrap", lineHeight:1.8, fontFamily:"'Rajdhani',sans-serif" }}>{parsed.dq}</div>
+          </div>}
+        </>}
       </div>
     );
   };
@@ -699,9 +725,13 @@ export default function MBSEBuilder() {
     if (!parsed.stpa||parsed.stpa==="SKIP") return <PH t="STPA-Sec not selected" />;
     return (
       <div style={{ padding:13 }}>
-        <div className="st">▸ STPA-SEC CONTROL STRUCTURE ANALYSIS</div>
-        <div style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:10, color:darkMode?"#4a7a99":"#334155", marginBottom:10 }}>// {mod.fullLabel} · CRRM Methodology //</div>
-        <pre style={{ background:darkMode?"rgba(0,212,255,0.02)":"rgba(3,105,161,0.04)", border:"1px solid "+(darkMode?"#0f3a5c":"#94a3b8"), borderRadius:3, padding:12, fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:darkMode?"#c8dde8":"#0f172a", whiteSpace:"pre-wrap", lineHeight:1.8 }}>{parsed.stpa}</pre>
+        <TeachCard tabKey="stpa" />
+        <ThinkBox tabKey="stpa" />
+        {(mode==="instructor" || thinkRevealed["stpa"] || !TEACH["stpa"]?.think) && <>
+          <div className="st">▸ STPA-SEC CONTROL STRUCTURE ANALYSIS</div>
+          <div style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:10, color:darkMode?"#4a7a99":"#334155", marginBottom:10 }}>// {mod.fullLabel} · CRRM Methodology //</div>
+          <pre style={{ background:darkMode?"rgba(0,212,255,0.02)":"rgba(3,105,161,0.04)", border:"1px solid "+(darkMode?"#0f3a5c":"#94a3b8"), borderRadius:3, padding:12, fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:darkMode?"#c8dde8":"#0f172a", whiteSpace:"pre-wrap", lineHeight:1.8 }}>{parsed.stpa}</pre>
+        </>}
       </div>
     );
   };
@@ -717,14 +747,18 @@ export default function MBSEBuilder() {
     if (!diags.length && !hasBdd) return <PH t="No diagrams selected" />;
     return (
       <div style={{ padding:13 }}>
-        <div style={{ background:"rgba(57,255,20,0.05)", border:"1px solid rgba(57,255,20,0.2)", borderRadius:3, padding:"6px 11px", marginBottom:12, fontFamily:"'Share Tech Mono',monospace", fontSize:10, color:"#86efac", lineHeight:1.8 }}>
-          ▸ Right-click diagram → Copy Image → paste into PowerPoint / Word&nbsp;&nbsp;|&nbsp;&nbsp;↓ SVG → Chrome → Print → PDF for crisp vector quality
-        </div>
-        {diags.map((d,i) => <MermaidDiagram key={i} code={d.code} title={d.title} />)}
-        {hasBdd && <div style={{ background:darkMode?"rgba(0,212,255,0.02)":"rgba(3,105,161,0.04)", border:"1px solid "+(darkMode?"#0f3a5c":"#94a3b8"), borderRadius:3, padding:12 }}>
-          <div style={{ fontFamily:"'Orbitron',monospace", fontSize:10, color:"#ff6b35", letterSpacing:2, marginBottom:7 }}>▸ BLOCK DEFINITION DIAGRAM (ASCII / SysML)</div>
-          <pre style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:"#39ff14", whiteSpace:"pre", overflowX:"auto", lineHeight:1.6 }}>{parsed.bdd}</pre>
-        </div>}
+        <TeachCard tabKey="diagrams" />
+        <ThinkBox tabKey="diagrams" />
+        {(mode==="instructor" || thinkRevealed["diagrams"] || !TEACH["diagrams"]?.think) && <>
+          <div style={{ background:"rgba(57,255,20,0.05)", border:"1px solid rgba(57,255,20,0.2)", borderRadius:3, padding:"6px 11px", marginBottom:12, fontFamily:"'Share Tech Mono',monospace", fontSize:10, color:"#86efac", lineHeight:1.8 }}>
+            ▸ Right-click diagram → Copy Image → paste into PowerPoint / Word&nbsp;&nbsp;|&nbsp;&nbsp;↓ SVG → Chrome → Print → PDF for crisp vector quality
+          </div>
+          {diags.map((d,i) => <MermaidDiagram key={i} code={d.code} title={d.title} />)}
+          {hasBdd && <div style={{ background:darkMode?"rgba(0,212,255,0.02)":"rgba(3,105,161,0.04)", border:"1px solid "+(darkMode?"#0f3a5c":"#94a3b8"), borderRadius:3, padding:12 }}>
+            <div style={{ fontFamily:"'Orbitron',monospace", fontSize:10, color:"#ff6b35", letterSpacing:2, marginBottom:7 }}>▸ BLOCK DEFINITION DIAGRAM (ASCII / SysML)</div>
+            <pre style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:"#39ff14", whiteSpace:"pre", overflowX:"auto", lineHeight:1.6 }}>{parsed.bdd}</pre>
+          </div>}
+        </>}
       </div>
     );
   };
@@ -736,19 +770,23 @@ export default function MBSEBuilder() {
     const lines = parsed.mitre.split("\n").filter(l => l.includes("|"));
     return (
       <div style={{ padding:13 }}>
-        <div className="st">▸ MITRE ATT&CK — {mod.label.toUpperCase()}</div>
-        <table className="tbl">
-          <thead><tr><th>Tactic</th><th>ID</th><th>Technique</th><th>Application</th></tr></thead>
-          <tbody>
-            {lines.map((line,i)=>{
-              const cols = line.split("|").map(c=>c.trim()).filter(Boolean);
-              if (cols.length < 3) return null;
-              const sev = Object.entries(sevMap).find(([k])=>(cols[0]||"").toLowerCase().includes(k))?.[1]||"l";
-              return <tr key={i}><td>{cols[0]}</td><td><span className={"b"+sev}>{cols[1]}</span></td><td>{cols[2]}</td><td style={{color:darkMode?"#4a7a99":"#334155",fontSize:11}}>{cols[3]||""}</td></tr>;
-            })}
-          </tbody>
-        </table>
-        <p style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:10, color:darkMode?"#4a7a99":"#334155", marginTop:8 }}>// Import IDs into attack.mitre.org/navigator | Use ICS matrix for OT scenarios //</p>
+        <TeachCard tabKey="mitre" />
+        <ThinkBox tabKey="mitre" />
+        {(mode==="instructor" || thinkRevealed["mitre"] || !TEACH["mitre"]?.think) && <>
+          <div className="st">▸ MITRE ATT&CK — {mod.label.toUpperCase()}</div>
+          <table className="tbl">
+            <thead><tr><th>Tactic</th><th>ID</th><th>Technique</th><th>Application</th></tr></thead>
+            <tbody>
+              {lines.map((line,i)=>{
+                const cols = line.split("|").map(c=>c.trim()).filter(Boolean);
+                if (cols.length < 3) return null;
+                const sev = Object.entries(sevMap).find(([k])=>(cols[0]||"").toLowerCase().includes(k))?.[1]||"l";
+                return <tr key={i}><td>{cols[0]}</td><td><span className={"b"+sev}>{cols[1]}</span></td><td>{cols[2]}</td><td style={{color:darkMode?"#4a7a99":"#334155",fontSize:11}}>{cols[3]||""}</td></tr>;
+              })}
+            </tbody>
+          </table>
+          <p style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:10, color:darkMode?"#4a7a99":"#334155", marginTop:8 }}>// Import IDs into attack.mitre.org/navigator | Use ICS matrix for OT scenarios //</p>
+        </>}
       </div>
     );
   };
@@ -758,8 +796,12 @@ export default function MBSEBuilder() {
     if (!parsed.req||parsed.req==="SKIP") return <PH t="Security Requirements not selected" />;
     return (
       <div style={{ padding:13 }}>
-        <div className="st">▸ SECURITY REQUIREMENTS — {mod.label.toUpperCase()}</div>
-        <pre style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:darkMode?"#c8dde8":"#0f172a", whiteSpace:"pre-wrap", lineHeight:1.8 }}>{parsed.req}</pre>
+        <TeachCard tabKey="req" />
+        <ThinkBox tabKey="req" />
+        {(mode==="instructor" || thinkRevealed["req"] || !TEACH["req"]?.think) && <>
+          <div className="st">▸ SECURITY REQUIREMENTS — {mod.label.toUpperCase()}</div>
+          <pre style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:darkMode?"#c8dde8":"#0f172a", whiteSpace:"pre-wrap", lineHeight:1.8 }}>{parsed.req}</pre>
+        </>}
       </div>
     );
   };
@@ -769,8 +811,12 @@ export default function MBSEBuilder() {
     if (!parsed.coa||parsed.coa==="SKIP") return <PH t="Courses of Action not selected" />;
     return (
       <div style={{ padding:13 }}>
-        <div className="st" style={{color:"#ff6b35"}}>▸ COURSES OF ACTION — {mod.label.toUpperCase()}</div>
-        <pre style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:darkMode?"#c8dde8":"#0f172a", whiteSpace:"pre-wrap", lineHeight:1.8 }}>{parsed.coa}</pre>
+        <TeachCard tabKey="coa" />
+        <ThinkBox tabKey="coa" />
+        {(mode==="instructor" || thinkRevealed["coa"] || !TEACH["coa"]?.think) && <>
+          <div className="st" style={{color:"#ff6b35"}}>▸ COURSES OF ACTION — {mod.label.toUpperCase()}</div>
+          <pre style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:darkMode?"#c8dde8":"#0f172a", whiteSpace:"pre-wrap", lineHeight:1.8 }}>{parsed.coa}</pre>
+        </>}
       </div>
     );
   };
@@ -849,14 +895,213 @@ export default function MBSEBuilder() {
     );
   };
 
+  // ── Teaching cards — grounded in actual CYB-5620V slide content ──────────
+  const TEACH = {
+    step1: {
+      icon: "🎯",
+      title: "WHY MODULE SELECTION MATTERS",
+      body: `In CYB-5620V, each module builds on the CRRM process — Cyber Resilient Risk Management. The module you pick determines which <b>real system</b> you'll analyze, which <b>threats</b> are relevant, and which <b>STPA-Sec methodology</b> applies. Think of it as choosing your mission brief. Day 1 modules (M2–M5) focus on threats and policy. Day 2 (M6–M8) apply full CRRM to actual weapon systems. Pick the one your class is currently covering.`
+    },
+    step2actor: {
+      icon: "⚔️",
+      title: "UNDERSTANDING THREAT ACTORS",
+      body: `The threat actor defines <b>how</b> the attack happens. Per Module 2, threats range from Tier 1 (opportunistic script kiddies) to Tier 5 (nation-state with zero-day capability and OT-specific tools). APT28/Fancy Bear — the most common actor in this course — has operated since 2008, uses the XAgent implant, and has demonstrated capability against ICS/OT systems. The actor you choose shapes the entire STPA-Sec adversity chain: adversary action → HCA → hazard → loss.`
+    },
+    step2soph: {
+      icon: "📊",
+      title: "THREAT SOPHISTICATION SCALE",
+      body: `From the Module 2 slides: Tier 1 uses publicly available tools and basic techniques. Tier 4 (APT level) conducts persistent multi-phase campaigns, exploits zero-days, and has OT-specific knowledge. Tier 5 is nation-state — co-evolving, capable of custom malware like Stuxnet or Industroyer. <b>Higher sophistication means fewer detection opportunities and longer dwell time</b> — this directly affects how you design your Loss Scenarios in STPA-Sec.`
+    },
+    step3: {
+      icon: "🔬",
+      title: "CHOOSING YOUR ANALYSIS ARTIFACTS",
+      body: `CRRM (from Module 4) is a process — Hazard Analysis → Loss Scenario Assessment → Assurance Cases. Each artifact you select is a piece of that process. <b>STPA-Sec</b> is the analytical core: Losses → Hazards → Control Structure → Hazardous Control Actions → Loss Scenarios. <b>MITRE ATT&CK</b> maps adversary TTPs to your scenario. <b>Security Requirements</b> close the loop to contracts and DoDI compliance. Select what your exercise requires — you don't need all of them every time.`
+    },
+    narrative: {
+      icon: "📖",
+      title: "READ THIS FIRST — THE ADVERSITY CHAIN",
+      body: `The narrative shows you the <b>adversity chain</b>: how an adversary moves from initial access through the control structure to mission impact. As you read, look for: (1) the initial access vector — how did they get in? (2) the pivot — how did they move from IT to OT/C2? (3) the control action affected — ENGAGE, HALT, or sensor data? (4) the mission loss — fratricide, denial failure, or data exfil? This chain is what STPA-Sec is designed to surface before the adversary exploits it.`,
+      think: `Before you move on: In your own words, describe the adversary's path from initial access to mission impact. What was the weakest link in the control structure?`
+    },
+    stpa: {
+      icon: "⚙️",
+      title: "STPA-SEC — WHAT YOU'RE LOOKING AT",
+      body: `STPA-Sec (System-Theoretic Process Analysis for Security) asks: <b>what system states lead to unacceptable losses?</b> The five elements build on each other: <b>Losses</b> (L-statements) are mission-level outcomes the system must prevent — e.g., L-1: Friendly casualties. <b>Hazards</b> are system states that lead to losses. <b>Control Structure</b> maps who commands whom. <b>Hazardous Control Actions</b> (HCAs) are the 4 failure types for each command: provided when shouldn't, not provided when should, wrong timing, wrong duration. <b>Loss Scenarios</b> trace the adversary chain to specific HCAs.`,
+      think: `Compare the AI's loss list to what you predicted. Which L-statement surprised you most? Which HCA type — provided when shouldn't, not provided when should, wrong timing, or wrong duration — is hardest to detect, and why?`
+    },
+    diagrams: {
+      icon: "📐",
+      title: "READING MBSE DIAGRAMS",
+      body: `These are <b>Model-Based Systems Engineering (MBSE)</b> artifacts — the same type your team would deliver in Cameo Systems Modeler under DoDI 5000.90. The <b>Use Case Diagram</b> shows actors (Operator, Attacker) and system functions — look for where the attacker intercepts or replaces the operator's actions. The <b>Sequence Diagram</b> shows the timeline of the attack — each arrow is a control action or feedback signal. The <b>BDD</b> shows system blocks and their security interfaces. Right-click any diagram → Copy Image → paste into your PowerPoint or Cameo model.`,
+      think: `In the sequence diagram, at which step could the attack have been detected or stopped? What control action or feedback signal would have flagged it?`
+    },
+    mitre: {
+      icon: "🗺️",
+      title: "MITRE ATT&CK — TWO MATRICES",
+      body: `MITRE ATT&CK has two matrices relevant to this course: <b>Enterprise</b> (IT systems — initial access, credential theft, lateral movement) and <b>ICS</b> (operational technology — modify parameter, inhibit response function, damage to property). Nation-state actors against DoD systems typically bridge both: they use Enterprise techniques to gain access, then ICS techniques to affect the physical domain. The technique IDs here (T1566, T0836, T0835) map directly to NSA/CISA alerts and DoD red team playbooks. They also feed your <b>Assurance Cases</b> — each technique is a threat your SHALL requirements must address.`,
+      think: `Pick the MITRE technique you think had the highest mission impact in this scenario. How would you write a single SHALL requirement that directly addresses it?`
+    },
+    req: {
+      icon: "📋",
+      title: "SECURITY REQUIREMENTS — FROM ANALYSIS TO CONTRACT",
+      body: `Security requirements are how STPA-Sec analysis becomes <b>contractually enforceable</b>. Under DoDI 5000.90 and SEP Section 3.2.11, these SHALL statements go into the System Requirements Document (SRD) and ultimately into the contractor's SOW. Each requirement here traces to a NIST 800-53 control and a DoDI reference — that's the traceability chain from engineering analysis to acquisition policy. <b>A good requirement is specific, verifiable, and technically grounded</b> — not "the system shall be secure," but "the system SHALL authenticate every ENGAGE command using mutual TLS with ECDSA-signed tokens."`,
+      think: `Choose one requirement from this list. Rewrite it in your own words, then identify: (1) how you would verify it in a test, and (2) which STPA-Sec hazard it directly mitigates.`
+    },
+    coa: {
+      icon: "🛡️",
+      title: "COURSES OF ACTION — SCRE TECHNIQUES",
+      body: `COAs in SCRE aren't just mitigations — they're <b>resilience techniques</b> from the FOREST framework (Sense → Isolate → Options → Evaluate → Readiness → Execute → Self-test). Module 4 introduces the Sentinel Pattern: a mission-aware detection system that monitors the control structure for anomalous HCAs. Module 7 (SDAD) builds full resilience architecture using these COAs. When you evaluate COAs, ask: does this <b>reduce loss scenario likelihood</b> (Assurance Case approach) or <b>reduce consequence</b> (Sentinel/FOREST approach)? The strongest defenses do both.`,
+      think: `Which COA would have the most impact on the specific Loss Scenario (LS-1) in this analysis? What would prevent you from implementing it in an MTA rapid acquisition program?`
+    }
+  };
+
+  // ── ThinkBox component — optional "think first" per tab ──────────────────
+  const ThinkBox = ({ tabKey }) => {
+    const t = TEACH[tabKey];
+    if (!t || !t.think || mode !== "student") return null;
+    const revealed = thinkRevealed[tabKey];
+    const hasText  = (thinkResponses[tabKey] || "").trim().length > 0;
+    if (revealed) return (
+      <div className="think-box">
+        <div className="think-saved">✓ YOUR RESPONSE SAVED — compare it against the AI analysis above</div>
+        {hasText && <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:10,color:_txtMuted,marginTop:6,lineHeight:1.6,padding:"5px 7px",background:_bgMod,borderRadius:2}}>
+          <div style={{color:_accent,fontSize:8,letterSpacing:1,marginBottom:3}}>YOUR ANSWER</div>
+          {thinkResponses[tabKey]}
+        </div>}
+      </div>
+    );
+    return (
+      <div className="think-box">
+        <div className="think-prompt">💭 {t.think}</div>
+        <div className="think-hint">Optional — jot your thinking before the AI analysis reveals. This gets saved to your portfolio.</div>
+        <textarea className="think-ta" rows={3}
+          value={thinkResponses[tabKey] || ""}
+          onChange={e=>setThinkText(tabKey, e.target.value)}
+          placeholder="Type your thoughts here..." />
+        <div className="think-actions">
+          <button className="think-reveal" onClick={()=>revealTab(tabKey)}>
+            {hasText ? "Save & See Analysis →" : "Skip — Show Analysis →"}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // ── TeachCard component — shown at top of each tab in student mode ────────
+  const TeachCard = ({ tabKey }) => {
+    const t = TEACH[tabKey];
+    if (!t || mode !== "student") return null;
+    return (
+      <div className="teach-card">
+        <div className="teach-icon">{t.icon}</div>
+        <div className="teach-title">{t.title}</div>
+        <div className="teach-body" dangerouslySetInnerHTML={{__html: t.body}} />
+      </div>
+    );
+  };
+
+  // ── Portfolio — print/save view of student work ───────────────────────────
+  const Portfolio = () => {
+    const tabLabels = {
+      narrative:"Scenario Narrative", stpa:"STPA-Sec Analysis",
+      diagrams:"Diagrams", mitre:"MITRE ATT&CK", req:"Security Requirements", coa:"Courses of Action"
+    };
+    const thinkLabels = {
+      narrative:"Adversity chain in your own words",
+      stpa:"STPA-Sec reflection", diagrams:"Detection opportunity",
+      mitre:"Key technique analysis", req:"Requirement rewrite",
+      coa:"COA prioritization"
+    };
+
+    const portfolioText = [
+      `CYB-5620V MBSE CYBER SCENARIO BUILDER — STUDENT PORTFOLIO`,
+      `Generated: ${new Date().toLocaleString()}`,
+      `Module: ${mod.fullLabel}`,
+      `Threat Actor: ${actor || "Not specified"} | Sophistication: ${SOPH[soph]}`,
+      ``,
+      `=== MY PREDICTIONS (before generation) ===`,
+      `Expected losses: ${predLosses || "(none entered)"}`,
+      `Expected MITRE technique: ${predMitre || "(none entered)"}`,
+      ``,
+      ...Object.entries(thinkResponses).filter(([,v])=>v.trim()).map(([k,v])=>[
+        `=== MY ANALYSIS: ${(thinkLabels[k]||k).toUpperCase()} ===`,
+        v, ``
+      ]).flat(),
+      `=== MY REFLECTION ===`,
+      reflection || "(none entered)",
+    ].join("\n");
+
+    return (
+      <div className="portfolio-overlay">
+        <div className="portfolio-inner">
+          <div className="portfolio-hdr">
+            <div className="portfolio-title">⬡ STUDENT PORTFOLIO</div>
+            <button className="portfolio-close" onClick={()=>setShowPortfolio(false)}>✕ Close</button>
+          </div>
+
+          <div className="portfolio-section">
+            <div className="portfolio-section-title">SCENARIO PARAMETERS</div>
+            <div className="portfolio-label">Module</div>
+            <div className="portfolio-value">{mod.fullLabel}</div>
+            <div className="portfolio-label">Threat Actor</div>
+            <div className="portfolio-value">{actor || "Not specified"} — {SOPH[soph]}</div>
+            <div className="portfolio-label">Generated</div>
+            <div className="portfolio-value">{new Date().toLocaleString()}</div>
+          </div>
+
+          <div className="portfolio-section">
+            <div className="portfolio-section-title">MY PREDICTIONS</div>
+            <div className="portfolio-label">Losses I predicted before generating</div>
+            <div className="portfolio-value">{predLosses || "(none entered)"}</div>
+            <div className="portfolio-label">MITRE technique I expected first</div>
+            <div className="portfolio-value">{predMitre || "(none entered)"}</div>
+          </div>
+
+          {Object.entries(thinkResponses).filter(([,v])=>v.trim()).length > 0 && (
+            <div className="portfolio-section">
+              <div className="portfolio-section-title">MY ANALYSIS RESPONSES</div>
+              {Object.entries(thinkResponses).filter(([,v])=>v.trim()).map(([k,v])=>(
+                <React.Fragment key={k}>
+                  <div className="portfolio-label">{thinkLabels[k] || k}</div>
+                  <div className="portfolio-value">{v}</div>
+                </React.Fragment>
+              ))}
+            </div>
+          )}
+
+          <div className="portfolio-section">
+            <div className="portfolio-section-title">MY FINAL REFLECTION</div>
+            <div className="portfolio-label">What did I learn? What surprised me? What would I change?</div>
+            <textarea className="think-ta" rows={5}
+              value={reflection}
+              onChange={e=>setReflection(e.target.value)}
+              placeholder="Write your overall reflection on this scenario analysis..." />
+          </div>
+
+          <div className="portfolio-actions">
+            <button className="port-btn port-print" onClick={()=>window.print()}>🖨 Print / Save as PDF</button>
+            <button className="port-btn port-copy" onClick={()=>navigator.clipboard.writeText(portfolioText)}>📋 Copy as Text</button>
+            <button className="port-btn port-close-btn" onClick={()=>setShowPortfolio(false)}>Close</button>
+          </div>
+
+          <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:9,color:_txtMuted,marginTop:12,lineHeight:1.7}}>
+            To save as PDF: Click Print → Change destination to "Save as PDF" → Save.<br/>
+            This portfolio captures your predictions, analysis responses, and reflection — submit it as your exercise deliverable.
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const StudentWizard = () => (
     <div className="pb">
       <div className="wiz-steps">
         {[1,2,3].map(n => wizStepEl(n, ["Mission","Threat","Analyze"]))}
       </div>
 
-      {/* Step 1 */}
+      {/* Step 1 — Choose Mission */}
       {wizStep === 1 && <>
+        <TeachCard tabKey="step1" />
         <div className="lbl" style={{marginTop:0}}>Choose Your Mission</div>
         <div className="mod-cards">
           {Object.entries(MODULES).map(([key,m]) => (
@@ -875,8 +1120,9 @@ export default function MBSEBuilder() {
         </div>
       </>}
 
-      {/* Step 2 */}
+      {/* Step 2 — Define Threat */}
       {wizStep === 2 && <>
+        <TeachCard tabKey="step2actor" />
         <div className="lbl" style={{marginTop:0}}>What&apos;s the Scenario?</div>
         <select value={scen} onChange={e=>setScen(e.target.value)}>
           <option value="">— Choose a scenario —</option>
@@ -895,6 +1141,7 @@ export default function MBSEBuilder() {
         {actor && ACTOR_TIPS[actor] && (
           <div className="actor-tip">ℹ {ACTOR_TIPS[actor]}</div>
         )}
+        <TeachCard tabKey="step2soph" />
         <label className="lbl">How Sophisticated Is the Threat?</label>
         <input type="range" min={1} max={5} value={soph} onChange={e=>setSoph(Number(e.target.value))} />
         <div className="sl"><span>Script Kiddie</span><span>Nation-State APT</span></div>
@@ -905,8 +1152,9 @@ export default function MBSEBuilder() {
         </div>
       </>}
 
-      {/* Step 3 */}
+      {/* Step 3 — Choose Artifacts */}
       {wizStep === 3 && <>
+        <TeachCard tabKey="step3" />
         <div className="lbl" style={{marginTop:0}}>What Do You Want to Analyze?</div>
         <div className="artifact-ck">
           {ARTIFACT_ITEMS.map(({k,label,desc,check})=>(
@@ -978,6 +1226,7 @@ export default function MBSEBuilder() {
   return (
     <>
       <style>{buildCss(darkMode)}</style>
+      {showPortfolio && <Portfolio />}
       <div className="r">
         <div className="inner">
           <div className="hdr">
@@ -1092,10 +1341,14 @@ export default function MBSEBuilder() {
                         ✓ {mod.label} · {SOPH[soph].split(" — ")[0]}
                       </div>
                       {predSaved && <PredictPanel />}
-                      <button className="wiz-next" style={{width:"100%",marginTop:8}} onClick={()=>{
+                      <button className="wiz-next" style={{width:"100%",marginTop:8}} onClick={()=>setShowPortfolio(true)}>
+                        📋 View & Save Portfolio
+                      </button>
+                      <button className="wiz-next" style={{width:"100%",marginTop:6,background:"transparent",color:_accent}} onClick={()=>{
                         setParsed(null); setRaw(""); setPredSaved(false);
                         setPredLosses(""); setPredMitre("");
-                        setUnlockedTabs(["Narrative"]);
+                        setThinkResponses({}); setThinkRevealed({});
+                        setReflection("");
                       }}>⬡ New Scenario</button>
                       <button className="wiz-back" style={{width:"100%",marginTop:6}} onClick={()=>setWizStep(2)}>← Change Parameters</button>
                     </div>
@@ -1108,40 +1361,13 @@ export default function MBSEBuilder() {
             <div className="panel out" style={{ borderTop:`2px solid ${mod.color}` }}>
               {loading && <div className="lb" />}
               <div className="tabs">
-                {TABS.map(t => {
-                  const locked = mode === "student" && parsed && !unlockedTabs.includes(t);
-                  return (
-                    <button key={t}
-                      className={"tab"+(tab===t?" on":"")+(locked?" tab-locked":"")}
-                      onClick={()=>!locked && setTab(t)}
-                      title={locked?"Complete the current tab to unlock":""}
-                    >
-                      {t}{locked && <span className="tab-lock-icon">🔒</span>}
-                    </button>
-                  );
-                })}
+                {TABS.map(t => (
+                  <button key={t}
+                    className={"tab"+(tab===t?" on":"")}
+                    onClick={()=>setTab(t)}
+                  >{t}</button>
+                ))}
               </div>
-              {/* Student unlock bridge — shown at bottom of each tab */}
-              {mode === "student" && parsed && !loading && (() => {
-                const bridges = {
-                  "Narrative":      { msg: "Read the scenario above, then unlock the analysis.", next: "STPA-Sec" },
-                  "STPA-Sec":       { msg: "Reviewed the STPA-Sec analysis? Unlock the diagrams.", next: "Diagrams" },
-                  "Diagrams":       { msg: "Studied the attack diagrams? Unlock MITRE mapping.", next: "MITRE Matrix" },
-                  "MITRE Matrix":   { msg: "Mapped the techniques? Unlock security requirements.", next: "Requirements" },
-                  "Requirements":   { msg: "Reviewed requirements? Unlock Courses of Action.", next: "Courses of Action" },
-                  "Courses of Action": null,
-                };
-                const bridge = bridges[tab];
-                if (!bridge || unlockedTabs.includes(bridge.next)) return null;
-                return (
-                  <div className="unlock-bar">
-                    <span>{bridge.msg}</span>
-                    <button className="unlock-btn" onClick={()=>{ unlockNext(tab); setTab(bridge.next); }}>
-                      Unlock {bridge.next} →
-                    </button>
-                  </div>
-                );
-              })()}
               <div className="tbody" style={{ padding:0 }}>
                 {renderers[tab]?.()}
               </div>
