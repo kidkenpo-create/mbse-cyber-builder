@@ -262,7 +262,7 @@ const ROLES = [
 ];
 
 const SOPH = { 1: "Tier 1 — Opportunistic (script kiddie)", 2: "Tier 2 — Organized Criminal", 3: "Tier 3 — Sophisticated Criminal / Hacktivist", 4: "Tier 4 — APT (Fancy Bear level)", 5: "Tier 5 — Nation-State (co-evolving, zero-day capable)" };
-const TABS = ["Narrative", "STPA-Sec", "Diagrams", "MITRE Matrix", "Requirements", "Raw"];
+const TABS = ["Narrative", "STPA-Sec", "Diagrams", "MITRE Matrix", "Requirements", "Courses of Action", "Raw"];
 
 function extractSection(txt, header) {
   const m = txt.match(new RegExp("===\\s*" + header + "\\s*===([\\s\\S]*?)(?====|$)", "i"));
@@ -643,18 +643,22 @@ export default function MBSEBuilder() {
 
   const rReqs = () => {
     if (!parsed||parsed.error) return <PH t="Generate a scenario first" />;
-    const hasR = parsed.req&&parsed.req!=="SKIP", hasC = parsed.coa&&parsed.coa!=="SKIP";
-    if (!hasR&&!hasC) return <PH t="Requirements / COA not selected" />;
+    if (!parsed.req||parsed.req==="SKIP") return <PH t="Security Requirements not selected" />;
     return (
-      <div>
-        {hasR && <div style={{ padding:13 }}>
-          <div className="st">▸ SECURITY REQUIREMENTS — {mod.label.toUpperCase()}</div>
-          <pre style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:"#c8dde8", whiteSpace:"pre-wrap", lineHeight:1.8 }}>{parsed.req}</pre>
-        </div>}
-        {hasC && <div style={{ padding:13, borderTop: hasR?"1px solid #0f3a5c":"none" }}>
-          <div className="st" style={{color:"#ff6b35"}}>▸ COURSES OF ACTION</div>
-          <pre style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:"#c8dde8", whiteSpace:"pre-wrap", lineHeight:1.8 }}>{parsed.coa}</pre>
-        </div>}
+      <div style={{ padding:13 }}>
+        <div className="st">▸ SECURITY REQUIREMENTS — {mod.label.toUpperCase()}</div>
+        <pre style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:"#c8dde8", whiteSpace:"pre-wrap", lineHeight:1.8 }}>{parsed.req}</pre>
+      </div>
+    );
+  };
+
+  const rCoa = () => {
+    if (!parsed||parsed.error) return <PH t="Generate a scenario first" />;
+    if (!parsed.coa||parsed.coa==="SKIP") return <PH t="Courses of Action not selected" />;
+    return (
+      <div style={{ padding:13 }}>
+        <div className="st" style={{color:"#ff6b35"}}>▸ COURSES OF ACTION — {mod.label.toUpperCase()}</div>
+        <pre style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:"#c8dde8", whiteSpace:"pre-wrap", lineHeight:1.8 }}>{parsed.coa}</pre>
       </div>
     );
   };
@@ -668,7 +672,7 @@ export default function MBSEBuilder() {
     </>
   );
 
-  const renderers = { "Narrative":rNarrative, "STPA-Sec":rStpa, "Diagrams":rDiagrams, "MITRE Matrix":rMitre, "Requirements":rReqs, "Raw":rRaw };
+  const renderers = { "Narrative":rNarrative, "STPA-Sec":rStpa, "Diagrams":rDiagrams, "MITRE Matrix":rMitre, "Requirements":rReqs, "Courses of Action":rCoa, "Raw":rRaw };
 
   return (
     <>
