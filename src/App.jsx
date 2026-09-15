@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 // ─── COURSE DATA — grounded in actual CYB-5620V content ──────────────────────
 const MODULES = {
@@ -492,6 +492,50 @@ function buildCss(dark) {
   .ta{resize:vertical;min-height:52px;font-size:12px;line-height:1.5;}
   input[type=range]{width:100%;accent-color:${accent};}
   .sl{display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:8px;color:${txtMuted};margin-top:2px;}
+  .mode-bar{display:flex;align-items:center;justify-content:center;gap:0;margin:8px auto 0;border:1px solid ${border};border-radius:3px;overflow:hidden;width:fit-content;}
+  .mode-btn{background:transparent;border:none;color:${txtMuted};font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:6px 16px;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+  .mode-btn.on{background:${accent};color:${dark?"#040d14":"#ffffff"};font-weight:700;}
+  .mode-btn:hover:not(.on){color:${txt};}
+  .wiz-steps{display:flex;align-items:center;gap:0;margin-bottom:10px;padding:8px 0;}
+  .wiz-step{display:flex;align-items:center;gap:5px;font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;color:${txtMuted};text-transform:uppercase;}
+  .wiz-step.done{color:${accent};}
+  .wiz-step.active{color:${txt};font-weight:700;}
+  .wiz-num{width:18px;height:18px;border-radius:50%;border:1px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;}
+  .wiz-step.done .wiz-num{background:${accent};border-color:${accent};color:${dark?"#040d14":"#fff"};}
+  .wiz-div{width:20px;height:1px;background:${border};margin:0 4px;}
+  .mod-cards{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px;}
+  .mod-card{background:${bgInput};border:1px solid ${border};border-radius:3px;padding:8px 10px;cursor:pointer;transition:all 0.15s;text-align:left;width:100%;}
+  .mod-card:hover{border-color:var(--c);}
+  .mod-card.on{border-color:var(--c);box-shadow:0 0 0 1px var(--c);}
+  .mod-card-title{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--c);letter-spacing:1px;font-weight:700;margin-bottom:2px;}
+  .mod-card-day{font-family:'Share Tech Mono',monospace;font-size:8px;color:${txtMuted};margin-bottom:3px;}
+  .mod-card-focus{font-size:11px;color:${txt};line-height:1.4;}
+  .actor-tip{font-family:'Share Tech Mono',monospace;font-size:9px;color:${txtMuted};margin-top:3px;padding:3px 6px;background:${bgMod};border-radius:2px;line-height:1.5;}
+  .artifact-ck{display:flex;flex-direction:column;gap:4px;}
+  .artifact-item{display:flex;align-items:flex-start;gap:8px;padding:5px 7px;border-radius:2px;cursor:pointer;border:1px solid transparent;transition:all 0.15s;}
+  .artifact-item:hover{background:${bgInput};}
+  .artifact-item.on{border-color:${border};background:${bgInput};}
+  .artifact-item input{accent-color:${accent};cursor:pointer;margin-top:2px;flex-shrink:0;}
+  .artifact-item-label{font-size:13px;color:${txt};font-weight:600;}
+  .artifact-item-desc{font-family:'Share Tech Mono',monospace;font-size:9px;color:${txtMuted};}
+  .wiz-nav{display:flex;gap:6px;margin-top:10px;}
+  .wiz-back{flex:0;background:transparent;border:1px solid ${border};color:${txtMuted};font-family:'Share Tech Mono',monospace;font-size:9px;padding:6px 12px;cursor:pointer;border-radius:2px;transition:all 0.15s;letter-spacing:1px;}
+  .wiz-back:hover{border-color:${accent};color:${accent};}
+  .wiz-next{flex:1;background:transparent;border:1px solid ${accent};color:${accent};font-family:'Orbitron',monospace;font-size:9px;padding:8px;cursor:pointer;border-radius:2px;transition:all 0.2s;letter-spacing:2px;font-weight:700;}
+  .wiz-next:hover{background:${accent};color:${dark?"#040d14":"#fff"};}
+  .wiz-next:disabled{opacity:0.3;cursor:not-allowed;}
+  .predict-panel{background:${dark?"rgba(0,212,255,0.03)":"rgba(3,105,161,0.04)"};border:1px solid ${dark?"rgba(0,212,255,0.2)":"rgba(3,105,161,0.2)"};border-radius:3px;padding:12px;margin-bottom:10px;}
+  .predict-title{font-family:'Orbitron',monospace;font-size:10px;color:${accent};letter-spacing:2px;margin-bottom:8px;}
+  .predict-q{font-size:12px;color:${txt};margin-bottom:4px;font-weight:600;}
+  .predict-ta{width:100%;background:${bgInner};border:1px solid ${border};color:${txt};font-family:'Rajdhani',sans-serif;font-size:12px;padding:6px 8px;border-radius:2px;outline:none;resize:vertical;min-height:40px;line-height:1.5;}
+  .predict-ta:focus{border-color:${accent};}
+  .predict-saved{background:${dark?"rgba(0,212,255,0.06)":"rgba(3,105,161,0.06)"};border:1px solid ${dark?"rgba(0,212,255,0.15)":"rgba(3,105,161,0.15)"};border-radius:2px;padding:6px 9px;font-family:'Share Tech Mono',monospace;font-size:10px;color:${txtMuted};line-height:1.7;}
+  .predict-saved-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:${accent};letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;}
+  .tab-locked{opacity:0.35;cursor:not-allowed !important;pointer-events:none;}
+  .unlock-bar{background:${dark?"rgba(0,212,255,0.04)":"rgba(3,105,161,0.04)"};border-bottom:1px solid ${border};padding:8px 13px;font-family:'Share Tech Mono',monospace;font-size:10px;color:${txtMuted};display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .unlock-btn{background:transparent;border:1px solid ${accent};color:${accent};font-family:'Share Tech Mono',monospace;font-size:9px;padding:4px 10px;cursor:pointer;border-radius:2px;white-space:nowrap;transition:all 0.15s;letter-spacing:1px;}
+  .unlock-btn:hover{background:${accent};color:${dark?"#040d14":"#fff"};}
+
   .cks{display:flex;flex-direction:column;gap:3px;}
   .ck{display:flex;align-items:center;gap:7px;padding:3px 5px;border-radius:2px;cursor:pointer;font-size:13px;color:${txt};}
   .ck:hover{background:rgba(0,212,255,0.04);}
@@ -531,6 +575,37 @@ function buildCss(dark) {
 export default function MBSEBuilder() {
   const mermaidReady = useMermaid();
   const [darkMode, setDarkMode] = useState(false);
+
+  // ── Phase 1: Mode & Wizard State ─────────────────────────────────────────
+  const [mode, setMode]           = useState("instructor"); // "instructor" | "student"
+  const [wizStep, setWizStep]     = useState(1);            // 1=Mission 2=Threat 3=Artifacts
+  const [predictions, setPredictions] = useState({ losses:"", mitre:"" });
+  const [predSaved, setPredSaved] = useState(false);
+  const [unlockedTabs, setUnlockedTabs] = useState(["Narrative"]);
+
+  // Reset student flow when mode changes
+  const switchMode = (m) => {
+    setMode(m);
+    setWizStep(1);
+    setPredSaved(false);
+    setUnlockedTabs(["Narrative"]);
+    setParsed(null);
+    setRaw("");
+  };
+
+  // Progressive unlock helper
+  const unlockNext = (currentTab) => {
+    const unlockMap = {
+      "Narrative":       ["Narrative","STPA-Sec"],
+      "STPA-Sec":        ["Narrative","STPA-Sec","Diagrams","MITRE Matrix"],
+      "Diagrams":        ["Narrative","STPA-Sec","Diagrams","MITRE Matrix","Requirements"],
+      "MITRE Matrix":    ["Narrative","STPA-Sec","Diagrams","MITRE Matrix","Requirements"],
+      "Requirements":    ["Narrative","STPA-Sec","Diagrams","MITRE Matrix","Requirements","Courses of Action"],
+      "Courses of Action": TABS,
+    };
+    setUnlockedTabs(unlockMap[currentTab] || TABS);
+  };
+
   const [mk, setMk] = useState("m6");
   const mod = MODULES[mk];
 
@@ -587,7 +662,12 @@ export default function MBSEBuilder() {
         dq:        extractSection(full, "DISCUSSION QUESTIONS"),
       });
     } catch (e) { setRaw("ERROR: " + e.message); setParsed({ error: e.message }); }
-    finally { setLoading(false); }
+    finally {
+      setLoading(false);
+      // Instructor sees everything immediately; student starts with Narrative only
+      if (mode === "instructor") setUnlockedTabs(TABS);
+      else setUnlockedTabs(["Narrative"]);
+    }
   };
 
   const copy = txt => { navigator.clipboard.writeText(txt || raw); setCopied(true); setTimeout(() => setCopied(false), 2000); };
@@ -703,6 +783,195 @@ export default function MBSEBuilder() {
 
   const renderers = { "Narrative":rNarrative, "STPA-Sec":rStpa, "Diagrams":rDiagrams, "MITRE Matrix":rMitre, "Requirements":rReqs, "Courses of Action":rCoa, "Raw":rRaw };
 
+  // ── Phase 1: Student Wizard ───────────────────────────────────────────────
+  const ARTIFACT_ITEMS = [
+    { k:"usecase",  label:"Who does what",                       desc:"Use Case Diagram (Mermaid flowchart)",               check:"usecase" },
+    { k:"sequence", label:"Trace the attack sequence",           desc:"Attack Sequence Diagram (Mermaid)",                  check:"sequence" },
+    { k:"stpa",     label:"Apply STPA-Sec methodology",          desc:"Losses · Hazards · HCAs · Loss Scenarios",           check:"stpa" },
+    { k:"mitre",    label:"Map MITRE ATT&CK techniques",         desc:"ICS + Enterprise tactic/technique mapping",          check:"mitre" },
+    { k:"req",      label:"Write security requirements",         desc:"SHALL statements · NIST 800-53 · DoDI traceability", check:"req" },
+    { k:"coa",      label:"Identify defensive options",          desc:"Courses of Action · FOREST/Sentinel techniques",     check:"coa" },
+    { k:"bdd",      label:"Model the system architecture",       desc:"Block Definition Diagram (SysML BDD)",               check:"bdd" },
+  ];
+
+  const ACTOR_TIPS = {
+    fancy_bear:"APT28 / Sofacy — Russian GRU, ops since 2008, XAgent implant, spearphish+credential harvest",
+    cozy_bear:"APT29 — Russian SVR, stealthy long-dwell, supply chain focus",
+    sandworm:"Sandworm — Russian GRU Unit 74455, Industroyer/BlackEnergy, power grid specialist",
+    prc_apt:"PRC Nation-State — pre-positioning in defense/critical infrastructure for future conflict",
+    criminal_rw:"Criminal Ransomware — financially motivated, DarkSide/REvil-style, disruption for payment",
+    nation_cpi:"Nation-state targeting Critical Program Information / IP theft from defense contractors",
+    insider_contr:"Malicious insider with privileged access — hardest to detect, highest trust exploitation",
+    supply_chain_a:"Hardware/software supply chain compromise — Trojaned components, firmware implants",
+    fancy_bear_acq:"APT28 targeting acquisition systems — contract data, SRDs, technical architecture docs",
+    apt_inject:"APT using injection — SQL, command, protocol injection against control interfaces",
+    apt_spoof:"APT using spoofing — GPS, sensor data, identity/credential spoofing",
+    apt_dos:"APT Denial of Service — availability attacks on control or comms infrastructure",
+    apt_tamper:"APT tampering/intercepting — MITM, data manipulation, command interception",
+    apt_disclose:"APT exfiltrating — sensor data, algorithms, operational patterns, classification models",
+    fancy_bear_pipe:"APT28 with XAgent on SCADA — authenticated access, persistent implant, OT knowledge",
+    criminal_colonial:"Criminal ransomware Colonial Pipeline-style — encrypt IT, OT collateral disruption",
+    nation_ics:"Nation-state ICS specialist — deep OT protocol knowledge, physical effect capability",
+    nation_sf:"Nation-state APT targeting Silverfish — C2 injection, sensor manipulation capability",
+    insider_maint:"Malicious maintenance tech — physical access, firmware modification, hardware implant",
+    criminal_sf:"Organized criminal — extortion, disruption of denial mission for adversary benefit",
+    nation_sdad:"Nation-state targeting SDAD — multi-vector simultaneous attack on Sentinel + C2",
+    multi_vector:"Coordinated multi-vector — GPS + C2 + Sensor simultaneous, overwhelm defenses",
+    insider_sdad:"SDAD insider — knowledge of Sentinel profiles, can disable detection before attack",
+    opfor_gavin:"OPFOR Red Team — CTT adversary role, finding GAVIN vulnerabilities for assignment",
+    nation_ew:"Nation-state with EW — jamming, spoofing, signal exploitation against UAV datalinks",
+    enemy_armored:"Enemy armored vehicle — detect and kinetically attack GAVIN during laser designation",
+    supply_gavin:"Supply chain/insider — hardware trojan in GAVIN laser or comms subsystem",
+  };
+
+  // Color tokens for inline JSX use
+  const _accent   = darkMode ? "#00d4ff" : "#0369a1";
+  const _txtMuted = darkMode ? "#4a7a99" : "#334155";
+  const _txt      = darkMode ? "#c8dde8" : "#0f172a";
+  const _border   = darkMode ? "#0f3a5c" : "#94a3b8";
+  const _bgInner  = darkMode ? "#070f1a" : "#ffffff";
+  const _bgInput  = darkMode ? "rgba(0,212,255,0.04)" : "rgba(0,0,0,0.04)";
+  const _bgMod    = darkMode ? "rgba(0,0,0,0.2)" : "rgba(0,0,0,0.04)";
+
+  const wizStepEl = (n, labels) => {
+    const cls = ["wiz-step", wizStep === n ? "active" : wizStep > n ? "done" : ""].filter(Boolean).join(" ");
+    return (
+      <React.Fragment key={n}>
+        {n > 1 && <div className="wiz-div"/>}
+        <div className={cls}>
+          <div className="wiz-num">{wizStep > n ? "✓" : n}</div>
+          <span>{labels[n-1]}</span>
+        </div>
+      </React.Fragment>
+    );
+  };
+
+  const StudentWizard = () => (
+    <div className="pb">
+      <div className="wiz-steps">
+        {[1,2,3].map(n => wizStepEl(n, ["Mission","Threat","Analyze"]))}
+      </div>
+
+      {/* Step 1 */}
+      {wizStep === 1 && <>
+        <div className="lbl" style={{marginTop:0}}>Choose Your Mission</div>
+        <div className="mod-cards">
+          {Object.entries(MODULES).map(([key,m]) => (
+            <button key={key} className={"mod-card"+(mk===key?" on":"")}
+              style={{"--c":m.color}} onClick={()=>{ setMk(key); }}>
+              <div className="mod-card-title">{m.label}</div>
+              <div className="mod-card-day">{m.day}</div>
+              <div className="mod-card-focus">{m.focus.split(":")[0]}</div>
+            </button>
+          ))}
+        </div>
+        <div className="wiz-nav">
+          <button className="wiz-next" onClick={()=>setWizStep(2)}>
+            SELECT: {mod.label} →
+          </button>
+        </div>
+      </>}
+
+      {/* Step 2 */}
+      {wizStep === 2 && <>
+        <div className="lbl" style={{marginTop:0}}>What&apos;s the Scenario?</div>
+        <select value={scen} onChange={e=>setScen(e.target.value)}>
+          <option value="">— Choose a scenario —</option>
+          {mod.scenarios.map(s=><option key={s.value} value={s.value}>{s.label}</option>)}
+        </select>
+        <label className="lbl">System Under Attack</label>
+        <select value={sys} onChange={e=>setSys(e.target.value)}>
+          <option value="">— Choose a system —</option>
+          {mod.systems.map(s=><option key={s.value} value={s.value}>{s.label}</option>)}
+        </select>
+        <label className="lbl">Who Is the Adversary?</label>
+        <select value={actor} onChange={e=>setActor(e.target.value)}>
+          <option value="">— Choose a threat actor —</option>
+          {mod.actors.map(a=><option key={a.value} value={a.value}>{a.label}</option>)}
+        </select>
+        {actor && ACTOR_TIPS[actor] && (
+          <div className="actor-tip">ℹ {ACTOR_TIPS[actor]}</div>
+        )}
+        <label className="lbl">How Sophisticated Is the Threat?</label>
+        <input type="range" min={1} max={5} value={soph} onChange={e=>setSoph(Number(e.target.value))} />
+        <div className="sl"><span>Script Kiddie</span><span>Nation-State APT</span></div>
+        <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:9,color:_accent,marginTop:4,textAlign:"center"}}>{SOPH[soph]}</div>
+        <div className="wiz-nav">
+          <button className="wiz-back" onClick={()=>setWizStep(1)}>← Back</button>
+          <button className="wiz-next" onClick={()=>setWizStep(3)}>Next: Choose Analysis →</button>
+        </div>
+      </>}
+
+      {/* Step 3 */}
+      {wizStep === 3 && <>
+        <div className="lbl" style={{marginTop:0}}>What Do You Want to Analyze?</div>
+        <div className="artifact-ck">
+          {ARTIFACT_ITEMS.map(({k,label,desc,check})=>(
+            <label key={k} className={"artifact-item"+(checks[check]?" on":"")}>
+              <input type="checkbox" checked={!!checks[check]} onChange={()=>toggle(check)}/>
+              <div>
+                <div className="artifact-item-label">{label}</div>
+                <div className="artifact-item-desc">{desc}</div>
+              </div>
+            </label>
+          ))}
+        </div>
+        <label className="lbl">Additional Context</label>
+        <textarea className="ta" value={extra} onChange={e=>setExtra(e.target.value)}
+          placeholder="Exercise phase, specific vulnerability, anything your instructor highlighted..." />
+        <div className="wiz-nav">
+          <button className="wiz-back" onClick={()=>setWizStep(2)}>← Back</button>
+          <button className="wiz-next" disabled={loading} onClick={()=>setWizStep(3)}>
+            {loading ? "⬡ Analyzing..." : "⬡ Continue to Predict →"}
+          </button>
+        </div>
+      </>}
+    </div>
+  );
+
+  // ── Phase 1: Predict Panel ────────────────────────────────────────────────
+  const PredictPanel = () => {
+    if (predSaved) return (
+      <div className="predict-panel">
+        <div className="predict-title">🎯 YOUR PREDICTIONS — SAVED</div>
+        <div className="predict-saved">
+          <div className="predict-saved-label">Losses you predicted</div>
+          <div>{predictions.losses || "(none entered)"}</div>
+        </div>
+        <div style={{marginTop:6}} className="predict-saved">
+          <div className="predict-saved-label">MITRE technique you expected</div>
+          <div>{predictions.mitre || "(none entered)"}</div>
+        </div>
+        <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:9,color:_txtMuted,marginTop:6,lineHeight:1.7}}>
+          Compare these against the AI analysis as each tab unlocks. Where were you right? Where did it surprise you?
+        </div>
+      </div>
+    );
+    return (
+      <div className="predict-panel">
+        <div className="predict-title">🎯 BEFORE YOU GENERATE — MAKE YOUR PREDICTIONS</div>
+        <div className="predict-q" style={{color:_txt}}>What do you think the top losses (L-statements) will be?</div>
+        <textarea className="predict-ta" rows={2}
+          value={predictions.losses}
+          onChange={e=>setPredictions(p=>({...p,losses:e.target.value}))}
+          placeholder="e.g. L-1: Friendly casualties, L-2: Mission failure, L-3: System unavailability..." />
+        <div className="predict-q" style={{color:_txt,marginTop:8}}>What MITRE ATT&CK technique do you expect to appear first?</div>
+        <textarea className="predict-ta" rows={1}
+          value={predictions.mitre}
+          onChange={e=>setPredictions(p=>({...p,mitre:e.target.value}))}
+          placeholder="e.g. T1566.001 Spearphishing, T0836 Modify Parameter, T1078 Valid Accounts..." />
+        <div style={{display:"flex",gap:6,marginTop:8}}>
+          <button className="wiz-next" style={{flex:1}} onClick={()=>{ setPredSaved(true); generate(); }}>
+            {loading?"⬡ Generating...":"💾 Save Predictions & Generate"}
+          </button>
+          <button className="wiz-back" onClick={()=>{ generate(); }}>
+            Skip
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       <style>{buildCss(darkMode)}</style>
@@ -712,88 +981,164 @@ export default function MBSEBuilder() {
             <div className="ey">◈ CYB-5620V · SECURE CYBER RESILIENT ENGINEERING · WAR-U ◈</div>
             <div className="ttl">MBSE <span>Cyber</span> Scenario Builder</div>
             <div className="sub">// M2: Threats · M3: Policy · M4: Approaches · M5: Pipeline · M6: Silverfish · M7: SDAD · M8: GAVIN //</div>
-            <button className="theme-btn" onClick={()=>setDarkMode(d=>!d)} title="Toggle light/dark mode">
-              {darkMode ? "☀ LIGHT" : "☾ DARK"}
-            </button>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,marginTop:8,flexWrap:"wrap"}}>
+              <div className="mode-bar">
+                <button className={"mode-btn"+(mode==="instructor"?" on":"")} onClick={()=>switchMode("instructor")}>
+                  ◈ Instructor
+                </button>
+                <button className={"mode-btn"+(mode==="student"?" on":"")} onClick={()=>switchMode("student")}>
+                  ◉ Student
+                </button>
+              </div>
+              <button className="theme-btn" onClick={()=>setDarkMode(d=>!d)} title="Toggle light/dark mode">
+                {darkMode ? "☀ LIGHT" : "☾ DARK"}
+              </button>
+            </div>
           </div>
 
-          {/* Module selector */}
-          <div className="mod-bar">
-            {Object.entries(MODULES).map(([key,m]) => (
-              <button key={key} className={"mb"+(mk===key?" on":"")} style={{"--c":m.color}}
-                onClick={()=>setMk(key)} title={m.fullLabel}>
-                {m.label}
-              </button>
-            ))}
-          </div>
+          {/* Module bar — instructor always, student only on step 1 shown via cards */}
+          {mode === "instructor" && (
+            <div className="mod-bar">
+              {Object.entries(MODULES).map(([key,m]) => (
+                <button key={key} className={"mb"+(mk===key?" on":"")} style={{"--c":m.color}}
+                  onClick={()=>setMk(key)} title={m.fullLabel}>
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="grid">
-            {/* CONFIG */}
+            {/* LEFT PANEL — config (instructor) or wizard (student) */}
             <div className="panel" style={{ borderTop:`2px solid ${mod.color}` }}>
               <div className="ph">
                 <div className="dot" style={{ background:mod.color, boxShadow:`0 0 6px ${mod.color}` }} />
-                <div className="pt" style={{ color:mod.color }}>{mod.label}</div>
-              </div>
-              <div className="pb">
-                <div style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:9, color: darkMode?"#4a7a99":"#64748b", lineHeight:1.6, marginBottom:8, padding:"5px 7px", background: darkMode?"rgba(0,0,0,0.2)":"rgba(0,0,0,0.04)", borderRadius:2 }}>
-                  {mod.day} · {mod.focus}
+                <div className="pt" style={{ color:mod.color }}>
+                  {mode === "student" ? `STEP ${wizStep} OF 3 · ${["MISSION","THREAT","ANALYZE"][wizStep-1]}` : mod.label}
                 </div>
-
-                <label className="lbl">Scenario</label>
-                <select value={scen} onChange={e=>setScen(e.target.value)}>
-                  <option value="">— Select Scenario —</option>
-                  {mod.scenarios.map(s=><option key={s.value} value={s.value}>{s.label}</option>)}
-                </select>
-
-                <label className="lbl">System Under Analysis</label>
-                <select value={sys} onChange={e=>setSys(e.target.value)}>
-                  <option value="">— Select System —</option>
-                  {mod.systems.map(s=><option key={s.value} value={s.value}>{s.label}</option>)}
-                </select>
-
-                <label className="lbl">Threat Actor</label>
-                <select value={actor} onChange={e=>setActor(e.target.value)}>
-                  <option value="">— Select Actor —</option>
-                  {mod.actors.map(a=><option key={a.value} value={a.value}>{a.label}</option>)}
-                </select>
-
-                <label className="lbl">Acquisition Pathway</label>
-                <select value={acq} onChange={e=>setAcq(e.target.value)}>
-                  {ACQ_PATHWAYS.map(a=><option key={a.value} value={a.value}>{a.label}</option>)}
-                </select>
-
-                <label className="lbl">Analyst Role</label>
-                <select value={role} onChange={e=>setRole(e.target.value)}>
-                  {ROLES.map(r=><option key={r.value} value={r.value}>{r.label}</option>)}
-                </select>
-
-                <label className="lbl">Threat Tier</label>
-                <input type="range" min={1} max={5} value={soph} onChange={e=>setSoph(Number(e.target.value))} />
-                <div className="sl"><span>T1 OPPORTUNISTIC</span><span>T4 APT</span><span>T5 NATION-STATE</span></div>
-
-                <label className="lbl">MBSE Artifacts</label>
-                <div className="cks">
-                  {[["usecase","Use Case Diagram (Mermaid)"],["sequence","Attack Sequence Diagram"],["bdd","Block Definition Diagram (BDD)"],["mitre","MITRE ATT&CK Mapping"],["req","Security Requirements"],["coa","Courses of Action"],["stpa","STPA-Sec Analysis"]].map(([k,lbl])=>(
-                    <label key={k} className="ck"><input type="checkbox" checked={checks[k]} onChange={()=>toggle(k)}/><span>{lbl}</span></label>
-                  ))}
-                </div>
-
-                <label className="lbl">Context / Notes</label>
-                <textarea className="ta" value={extra} onChange={e=>setExtra(e.target.value)} placeholder="Exercise phase, specific CVE, protocol, student context..." />
-
-                <button className="gbtn" disabled={loading} onClick={generate}
-                  style={{ borderColor:mod.color, color:mod.color }}>
-                  {loading ? "⬡ Generating..." : "⬡ Generate Scenario"}
-                </button>
               </div>
+
+              {mode === "instructor" ? (
+                <div className="pb">
+                  <div style={{ fontFamily:"'Share Tech Mono',monospace", fontSize:9, color: darkMode?"#4a7a99":"#64748b", lineHeight:1.6, marginBottom:8, padding:"5px 7px", background: darkMode?"rgba(0,0,0,0.2)":"rgba(0,0,0,0.04)", borderRadius:2 }}>
+                    {mod.day} · {mod.focus}
+                  </div>
+                  <label className="lbl">Scenario</label>
+                  <select value={scen} onChange={e=>setScen(e.target.value)}>
+                    <option value="">— Select Scenario —</option>
+                    {mod.scenarios.map(s=><option key={s.value} value={s.value}>{s.label}</option>)}
+                  </select>
+                  <label className="lbl">System Under Analysis</label>
+                  <select value={sys} onChange={e=>setSys(e.target.value)}>
+                    <option value="">— Select System —</option>
+                    {mod.systems.map(s=><option key={s.value} value={s.value}>{s.label}</option>)}
+                  </select>
+                  <label className="lbl">Threat Actor</label>
+                  <select value={actor} onChange={e=>setActor(e.target.value)}>
+                    <option value="">— Select Actor —</option>
+                    {mod.actors.map(a=><option key={a.value} value={a.value}>{a.label}</option>)}
+                  </select>
+                  <label className="lbl">Acquisition Pathway</label>
+                  <select value={acq} onChange={e=>setAcq(e.target.value)}>
+                    {ACQ_PATHWAYS.map(a=><option key={a.value} value={a.value}>{a.label}</option>)}
+                  </select>
+                  <label className="lbl">Analyst Role</label>
+                  <select value={role} onChange={e=>setRole(e.target.value)}>
+                    {ROLES.map(r=><option key={r.value} value={r.value}>{r.label}</option>)}
+                  </select>
+                  <label className="lbl">Threat Tier</label>
+                  <input type="range" min={1} max={5} value={soph} onChange={e=>setSoph(Number(e.target.value))} />
+                  <div className="sl"><span>T1 OPPORTUNISTIC</span><span>T4 APT</span><span>T5 NATION-STATE</span></div>
+                  <label className="lbl">MBSE Artifacts</label>
+                  <div className="cks">
+                    {[["usecase","Use Case Diagram (Mermaid)"],["sequence","Attack Sequence Diagram"],["bdd","Block Definition Diagram (BDD)"],["mitre","MITRE ATT&CK Mapping"],["req","Security Requirements"],["coa","Courses of Action"],["stpa","STPA-Sec Analysis"]].map(([k,lbl])=>(
+                      <label key={k} className="ck"><input type="checkbox" checked={checks[k]} onChange={()=>toggle(k)}/><span>{lbl}</span></label>
+                    ))}
+                  </div>
+                  <label className="lbl">Context / Notes</label>
+                  <textarea className="ta" value={extra} onChange={e=>setExtra(e.target.value)} placeholder="Exercise phase, specific CVE, protocol, student context..." />
+                  <button className="gbtn" disabled={loading} onClick={generate}
+                    style={{ borderColor:mod.color, color:mod.color }}>
+                    {loading ? "⬡ Generating..." : "⬡ Generate Scenario"}
+                  </button>
+                </div>
+              ) : (
+                /* Student mode */
+                <>
+                  {wizStep <= 2 && <StudentWizard />}
+                  {wizStep === 3 && !parsed && !loading && (
+                    <div className="pb">
+                      <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:9,color:_accent,marginBottom:8,padding:"4px 6px",background:_bgMod,borderRadius:2}}>
+                        ✓ {mod.label} · {SOPH[soph].split(" — ")[0]}
+                      </div>
+                      <PredictPanel />
+                      <button className="wiz-back" style={{marginTop:6,width:"100%"}} onClick={()=>setWizStep(2)}>← Change Threat</button>
+                    </div>
+                  )}
+                  {wizStep === 3 && loading && (
+                    <div className="pb">
+                      <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:10,color:_accent,textAlign:"center",padding:"40px 0",lineHeight:2}}>
+                        ⬡ Generating your scenario...<br/>
+                        <span style={{fontSize:9,color:_txtMuted}}>Claude is building your analysis — usually 1-2 minutes</span>
+                      </div>
+                    </div>
+                  )}
+                  {wizStep === 3 && parsed && !loading && (
+                    <div className="pb">
+                      <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:9,color:_accent,marginBottom:8,padding:"4px 6px",background:_bgMod,borderRadius:2}}>
+                        ✓ {mod.label} · {SOPH[soph].split(" — ")[0]}
+                      </div>
+                      {predSaved && <PredictPanel />}
+                      <button className="wiz-next" style={{width:"100%",marginTop:8}} onClick={()=>{
+                        setParsed(null); setRaw(""); setPredSaved(false);
+                        setPredictions({losses:"",mitre:""});
+                        setUnlockedTabs(["Narrative"]);
+                      }}>⬡ New Scenario</button>
+                      <button className="wiz-back" style={{width:"100%",marginTop:6}} onClick={()=>setWizStep(2)}>← Change Parameters</button>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
 
             {/* OUTPUT */}
             <div className="panel out" style={{ borderTop:`2px solid ${mod.color}` }}>
               {loading && <div className="lb" />}
               <div className="tabs">
-                {TABS.map(t=><button key={t} className={"tab"+(tab===t?" on":"")} onClick={()=>setTab(t)}>{t}</button>)}
+                {TABS.map(t => {
+                  const locked = mode === "student" && parsed && !unlockedTabs.includes(t);
+                  return (
+                    <button key={t}
+                      className={"tab"+(tab===t?" on":"")+(locked?" tab-locked":"")}
+                      onClick={()=>!locked && setTab(t)}
+                      title={locked?"Complete the current tab to unlock":""}
+                    >
+                      {t}{locked && <span className="tab-lock-icon">🔒</span>}
+                    </button>
+                  );
+                })}
               </div>
+              {/* Student unlock bridge — shown at bottom of each tab */}
+              {mode === "student" && parsed && !loading && (() => {
+                const bridges = {
+                  "Narrative":      { msg: "Read the scenario above, then unlock the analysis.", next: "STPA-Sec" },
+                  "STPA-Sec":       { msg: "Reviewed the STPA-Sec analysis? Unlock the diagrams.", next: "Diagrams" },
+                  "Diagrams":       { msg: "Studied the attack diagrams? Unlock MITRE mapping.", next: "MITRE Matrix" },
+                  "MITRE Matrix":   { msg: "Mapped the techniques? Unlock security requirements.", next: "Requirements" },
+                  "Requirements":   { msg: "Reviewed requirements? Unlock Courses of Action.", next: "Courses of Action" },
+                  "Courses of Action": null,
+                };
+                const bridge = bridges[tab];
+                if (!bridge || unlockedTabs.includes(bridge.next)) return null;
+                return (
+                  <div className="unlock-bar">
+                    <span>{bridge.msg}</span>
+                    <button className="unlock-btn" onClick={()=>{ unlockNext(tab); setTab(bridge.next); }}>
+                      Unlock {bridge.next} →
+                    </button>
+                  </div>
+                );
+              })()}
               <div className="tbody" style={{ padding:0 }}>
                 {renderers[tab]?.()}
               </div>
