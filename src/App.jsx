@@ -262,7 +262,7 @@ const ROLES = [
 ];
 
 const SOPH = { 1: "Tier 1 — Opportunistic (script kiddie)", 2: "Tier 2 — Organized Criminal", 3: "Tier 3 — Sophisticated Criminal / Hacktivist", 4: "Tier 4 — APT (Fancy Bear level)", 5: "Tier 5 — Nation-State (co-evolving, zero-day capable)" };
-const TABS = ["Narrative", "STPA-Sec", "Diagrams", "MITRE Matrix", "Requirements", "Cameo Export", "Raw"];
+const TABS = ["Narrative", "STPA-Sec", "Diagrams", "MITRE Matrix", "Requirements", "Raw"];
 
 function extractSection(txt, header) {
   const m = txt.match(new RegExp("===\\s*" + header + "\\s*===([\\s\\S]*?)(?====|$)", "i"));
@@ -401,7 +401,7 @@ function buildPrompt(mk, scen, sys, actor, soph, acq, role, extra, checks) {
     checks.req       && "Formal security requirements (SHALL statements)",
     checks.coa       && "Defensive Courses of Action",
     checks.stpa      && "STPA-Sec Control Structure Analysis",
-    checks.cameo     && "Cameo/MagicDraw SysML export",
+
   ].filter(Boolean);
 
   const ucRule = "Generate ONLY Mermaid (NOT PlantUML). Start: flowchart TD. Actors: rect node e.g. Op[Operator]. Use cases: round e.g. UC1(Monitor Area). Attacks: diamond e.g. ATK1{Inject Cmd}. Defenses: stadium e.g. DEF1([Detect Anomaly]). Arrows: --> only, labels use |text| syntax. Groups: subgraph Title ... end. Labels max 3 words. KEEP COMPACT — max 8 nodes per subgraph, max 3 subgraphs. ALWAYS end the diagram completely — never leave an arrow or node unfinished. NO @startuml NO skinparam.";
@@ -431,7 +431,7 @@ function buildPrompt(mk, scen, sys, actor, soph, acq, role, extra, checks) {
     + "===SECURITY REQUIREMENTS===\n" + (checks.req ? "8-12 SHALL requirements for " + mod.fullLabel + ". Format each line: REQ-ID | SHALL statement | Priority H/M/L | NIST 800-53 Control | Relevant DoDI. Ground requirements in module-specific context." : "SKIP") + "\n\n"
     + "===COURSES OF ACTION===\n" + (checks.coa ? "5-8 COAs for " + mod.fullLabel + ". For each: Name | Description | Effectiveness | Tradeoffs. Include SCRE-specific techniques (FOREST, Sentinel, design patterns where relevant)." : "SKIP") + "\n\n"
     + "===STPA-SEC ANALYSIS===\n" + (checks.stpa ? "Full STPA-Sec grounded in " + mod.fullLabel + ":\n1. LOSSES (L-1 to L-5): mission-level unacceptable outcomes\n2. HAZARDS (H-1 to H-6): system states leading to losses\n3. CONTROL STRUCTURE: Controller, Control Actions, Controlled Process, Feedback channels\n4. HAZARDOUS CONTROL ACTIONS: For 2 key control actions, list all 4 HCA types (provided-when-shouldnt, not-provided-when-should, wrong-timing, wrong-duration)\n5. LOSS SCENARIOS (LS-1 to LS-4): adversary action → HCA → hazard → loss chain" : "SKIP") + "\n\n"
-    + "===CAMEO EXPORT===\n" + (checks.cameo ? "Output a SysML scaffold in this exact format (used for XMI/CSV export):\nBLOCKS:\n  block SystemName { +missionType: String; +securityLevel: String }\n  block AttackerName { +capability: String; +tier: String }\n  block SecurityControl { +type: String; +mechanism: String }\n(list 3-5 key blocks)\n\nUSE_CASES:\n  uc 1 ActorName Perform Primary Mission\n  uc 2 AttackerName Execute Attack\n  uc 3 Operator Monitor Status\n(list 4-6 use cases)\n\nAll requirements from ===SECURITY REQUIREMENTS=== must appear here with same REQ-IDs:\nREQUIREMENTS: (copy all REQ-IDs and SHALL statements verbatim from requirements section)\n\nTRACEABILITY:\n  REQ-001 --> UseCase --> SystemBlock\n(one row per requirement)" : "SKIP") + "\n\n"
+
     + "===DISCUSSION QUESTIONS===\n"
     + "5 discussion questions specifically aligned to " + mod.elos + ". Each question should reference specific content from " + mod.fullLabel + ", require application of CRRM/STPA-Sec methodology, and be suitable for a 30-40 minute class discussion.\n\n"
     + "Be technically precise. Use actual CVE numbers, DoDI references, protocol names, and MBSE terminology from the module context.";
@@ -512,7 +512,7 @@ export default function MBSEBuilder() {
   const [acq,   setAcq]   = useState("");
   const [role,  setRole]  = useState("");
   const [extra, setExtra] = useState("");
-  const [checks, setChecks] = useState({ usecase:true, sequence:true, bdd:true, mitre:true, req:true, coa:false, stpa:true, cameo:true });
+  const [checks, setChecks] = useState({ usecase:true, sequence:true, bdd:true, mitre:true, req:true, coa:false, stpa:true });
 
   const [loading, setLoading] = useState(false);
   const [tab, setTab] = useState("Narrative");
@@ -554,7 +554,7 @@ export default function MBSEBuilder() {
         req:       extractSection(full, "SECURITY REQUIREMENTS"),
         coa:       extractSection(full, "COURSES OF ACTION"),
         stpa:      extractSection(full, "STPA[- ]SEC ANALYSIS"),
-        cameo:     extractSection(full, "CAMEO EXPORT"),
+
         dq:        extractSection(full, "DISCUSSION QUESTIONS"),
       });
     } catch (e) { setRaw("ERROR: " + e.message); setParsed({ error: e.message }); }
@@ -659,180 +659,6 @@ export default function MBSEBuilder() {
     );
   };
 
-  // ── XML entity escape helper ─────────────────────────────────────────────
-  const xmlEsc = (str) => {
-    return String(str || "")
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  };
-
-  // ── Build XMI string via array push (no template literals) ───────────────
-  const generateXMI = (cameoText, reqText) => {
-    const ts = new Date().toISOString();
-    const modName = (MODULES[mk] ? MODULES[mk].fullLabel : "SCRE_Model")
-      .replace(/[^a-zA-Z0-9_]/g, "_");
-    const uid = () => "_id_" + Math.random().toString(36).slice(2, 9);
-
-    const reqLines = (reqText || "").split("\n").filter(function(l){ return l.indexOf("|") >= 0; });
-    const reqs = reqLines.map(function(line, i) {
-      const p = line.split("|").map(function(s){ return s.trim(); });
-      return {
-        id:       p[0] || ("REQ-" + ("00" + (i+1)).slice(-3)),
-        text:     xmlEsc(p[1] || ("Requirement " + (i+1))),
-        priority: p[2] || "M",
-        nist:     xmlEsc(p[3] || ""),
-        dodi:     xmlEsc(p[4] || ""),
-        xid:      uid(),
-        pid:      uid(),
-        nid:      uid(),
-      };
-    });
-
-    const blockRe = /block\s+([\w]+)/g;
-    const blockMatches = [];
-    let bm;
-    while ((bm = blockRe.exec(cameoText || "")) !== null) blockMatches.push(bm[1]);
-    const blocks = blockMatches.length > 0
-      ? blockMatches
-      : ["SystemBlock", "AttackerBlock", "SecurityControlBlock"];
-
-    const blockIds = {};
-    blocks.forEach(function(b){ blockIds[b] = uid(); });
-
-    const ucList = ["Deploy System", "Monitor Area", "Detect Anomaly", "Respond to Threat"];
-    const ucIds = {};
-    ucList.forEach(function(u){ ucIds[u] = uid(); });
-
-    const pkgId    = uid();
-    const crrmId   = uid();
-    const reqPkgId = uid();
-    const ucPkgId  = uid();
-
-    const out = [];
-    out.push('<?xml version="1.0" encoding="UTF-8"?>');
-    out.push('<xmi:XMI xmi:version="2.1"');
-    out.push('  xmlns:xmi="http://schema.omg.org/spec/XMI/2.1"');
-    out.push('  xmlns:uml="http://www.eclipse.org/uml2/5.0.0/UML"');
-    out.push('  xmlns:SysML="http://www.omg.org/spec/SysML/20181001/SysML">');
-    out.push('  <!-- CYB-5620V MBSE Builder - War-U | ' + ts + ' -->');
-    out.push('  <uml:Model xmi:id="' + pkgId + '" name="' + modName + '">');
-
-    out.push('    <packagedElement xmi:type="uml:Package" xmi:id="' + crrmId + '" name="' + modName + '_CRRM">');
-    out.push('      <packagedElement xmi:type="uml:Package" xmi:id="' + uid() + '" name="HazardAnalysis"/>');
-    out.push('      <packagedElement xmi:type="uml:Package" xmi:id="' + uid() + '" name="LossScenarios"/>');
-    out.push('      <packagedElement xmi:type="uml:Package" xmi:id="' + uid() + '" name="AssuranceCases"/>');
-    out.push('    </packagedElement>');
-
-    out.push('    <packagedElement xmi:type="uml:Package" xmi:id="' + reqPkgId + '" name="' + modName + '_Requirements">');
-    reqs.forEach(function(r) {
-      out.push('      <packagedElement xmi:type="uml:Class" xmi:id="' + r.xid + '" name="' + r.id + '">');
-      out.push('        <ownedComment xmi:type="uml:Comment"><body>' + r.text + '</body></ownedComment>');
-      out.push('        <ownedAttribute xmi:type="uml:Property" name="priority" xmi:id="' + r.pid + '">');
-      out.push('          <defaultValue xmi:type="uml:LiteralString" value="' + r.priority + '"/>');
-      out.push('        </ownedAttribute>');
-      out.push('        <ownedAttribute xmi:type="uml:Property" name="nist_control" xmi:id="' + r.nid + '">');
-      out.push('          <defaultValue xmi:type="uml:LiteralString" value="' + r.nist + '"/>');
-      out.push('        </ownedAttribute>');
-      out.push('      </packagedElement>');
-    });
-    out.push('    </packagedElement>');
-
-    out.push('    <packagedElement xmi:type="uml:Package" xmi:id="' + ucPkgId + '" name="' + modName + '_UseCases">');
-    ucList.forEach(function(uc) {
-      out.push('      <packagedElement xmi:type="uml:UseCase" xmi:id="' + ucIds[uc] + '" name="' + xmlEsc(uc) + '"/>');
-    });
-    out.push('    </packagedElement>');
-
-    blocks.forEach(function(b) {
-      out.push('    <packagedElement xmi:type="uml:Class" xmi:id="' + blockIds[b] + '" name="' + b + '">');
-      out.push('      <appliedStereotype xmi:type="SysML:Block"/>');
-      out.push('    </packagedElement>');
-    });
-
-    reqs.forEach(function(r, i) {
-      const tgt = blocks[i % blocks.length];
-      out.push('    <packagedElement xmi:type="uml:Abstraction" xmi:id="' + uid() + '"');
-      out.push('      name="deriveReqt_' + r.id + '" client="' + r.xid + '" supplier="' + blockIds[tgt] + '">');
-      out.push('      <appliedStereotype xmi:type="SysML:DeriveReqt"/>');
-      out.push('    </packagedElement>');
-    });
-
-    out.push('  </uml:Model>');
-    out.push('</xmi:XMI>');
-    return out.join("\n");
-  };
-
-  // ── CSV requirements generator ────────────────────────────────────────────
-  const generateCSV = (reqText) => {
-    const rows = ["REQ-ID,SHALL Statement,Priority,NIST 800-53 Control,DoDI Reference,Verification Method,Status"];
-    (reqText || "").split("\n").filter(function(l){ return l.indexOf("|") >= 0; }).forEach(function(line) {
-      const p = line.split("|").map(function(s){ return s.trim(); });
-      const q = function(v){ return '"' + (v || "").replace(/"/g, '""') + '"'; };
-      rows.push([q(p[0]), q(p[1]), q(p[2] || "M"), q(p[3]), q(p[4]), q("Inspection/Test"), q("Draft")].join(","));
-    });
-    return rows.join("\n");
-  };
-
-  const dlFile = (content, filename, mime) => {
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([content], { type: mime }));
-    a.download = filename;
-    a.click();
-  };
-
-  const rCameo = () => {
-    if (!parsed || parsed.error) return <PH t="Generate a scenario first" />;
-    if (!parsed.cameo || parsed.cameo === "SKIP") return <PH t="Cameo Export not selected" />;
-    const slug = (MODULES[mk] ? MODULES[mk].label : "SCRE").replace(/[^a-zA-Z0-9]/g, "_");
-    const xmiBtn = { background:"transparent", border:"1px solid #a78bfa", color:"#a78bfa",
-      fontFamily:"'Share Tech Mono',monospace", fontSize:10, padding:"3px 10px",
-      cursor:"pointer", borderRadius:2, letterSpacing:1 };
-    const csvBtn = { background:"transparent", border:"1px solid #34d399", color:"#34d399",
-      fontFamily:"'Share Tech Mono',monospace", fontSize:10, padding:"3px 10px",
-      cursor:"pointer", borderRadius:2, letterSpacing:1 };
-    return (
-      <>
-        <div style={{ display:"flex", gap:8, padding:"8px 12px", borderBottom:"1px solid #0f3a5c", flexWrap:"wrap", alignItems:"center" }}>
-          <button className="cb" onClick={()=>copy(parsed.cameo)}>{copied ? "[ COPIED! ]" : "[ COPY SCAFFOLD ]"}</button>
-          <button style={xmiBtn} onClick={()=>dlFile(generateXMI(parsed.cameo, parsed.req), slug + "_SysML.xmi", "application/xml")}>
-            Download XMI (Cameo/MagicDraw)
-          </button>
-          <button style={csvBtn} onClick={()=>dlFile(generateCSV(parsed.req), slug + "_Requirements.csv", "text/csv")}>
-            Download CSV (Requirements)
-          </button>
-        </div>
-        <div style={{ padding:13 }}>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginBottom:14 }}>
-            <div style={{ background:"rgba(167,139,250,0.06)", border:"1px solid rgba(167,139,250,0.3)", borderRadius:3, padding:11, fontSize:12, lineHeight:1.8 }}>
-              <div style={{ fontFamily:"'Orbitron',monospace", fontSize:9, color:"#a78bfa", letterSpacing:2, marginBottom:6 }}>XMI IMPORT - CAMEO / MAGICDRAW</div>
-              1. Download the .xmi file<br/>
-              2. Open your SysML project in Cameo<br/>
-              3. <strong style={{color:"#a78bfa"}}>File - Import - Import XMI</strong><br/>
-              4. Select .xmi file, click Finish<br/>
-              5. Packages, Blocks, Requirements + deriveReqt traces load into containment tree<br/>
-              <span style={{color:"#4a7a99",fontSize:11}}>Cameo Systems Modeler 2021x+</span>
-            </div>
-            <div style={{ background:"rgba(52,211,153,0.06)", border:"1px solid rgba(52,211,153,0.3)", borderRadius:3, padding:11, fontSize:12, lineHeight:1.8 }}>
-              <div style={{ fontFamily:"'Orbitron',monospace", fontSize:9, color:"#34d399", letterSpacing:2, marginBottom:6 }}>CSV IMPORT - MAGICDRAW REQUIREMENTS</div>
-              1. Download the .csv file<br/>
-              2. Open your MagicDraw project<br/>
-              3. <strong style={{color:"#34d399"}}>Tools - Data Import</strong><br/>
-              4. Select CSV, map columns to properties<br/>
-              5. REQ-ID, SHALL text, Priority, NIST, DoDI populate automatically<br/>
-              <span style={{color:"#4a7a99",fontSize:11}}>MagicDraw 2022+ and Cameo</span>
-            </div>
-          </div>
-          <div className="st">SYSML SCAFFOLD (human-readable)</div>
-          <pre style={{ background:"rgba(0,212,255,0.02)", border:"1px solid #0f3a5c", borderRadius:3, padding:12,
-            fontFamily:"'Share Tech Mono',monospace", fontSize:11, color:"#39ff14",
-            whiteSpace:"pre-wrap", lineHeight:1.8, maxHeight:"36vh", overflowY:"auto" }}>{parsed.cameo}</pre>
-        </div>
-      </>
-    );
-  };
-
   const rRaw = () => (
     <>
       <div className="cr"><button className="cb" onClick={()=>copy(raw)}>{copied?"[ COPIED! ]":"[ COPY RAW ]"}</button></div>
@@ -842,7 +668,7 @@ export default function MBSEBuilder() {
     </>
   );
 
-  const renderers = { "Narrative":rNarrative, "STPA-Sec":rStpa, "Diagrams":rDiagrams, "MITRE Matrix":rMitre, "Requirements":rReqs, "Cameo Export":rCameo, "Raw":rRaw };
+  const renderers = { "Narrative":rNarrative, "STPA-Sec":rStpa, "Diagrams":rDiagrams, "MITRE Matrix":rMitre, "Requirements":rReqs, "Raw":rRaw };
 
   return (
     <>
@@ -911,7 +737,7 @@ export default function MBSEBuilder() {
 
                 <label className="lbl">MBSE Artifacts</label>
                 <div className="cks">
-                  {[["usecase","Use Case Diagram (Mermaid)"],["sequence","Attack Sequence Diagram"],["bdd","Block Definition Diagram (BDD)"],["mitre","MITRE ATT&CK Mapping"],["req","Security Requirements"],["coa","Courses of Action"],["stpa","STPA-Sec Analysis"],["cameo","Cameo / MagicDraw Export"]].map(([k,lbl])=>(
+                  {[["usecase","Use Case Diagram (Mermaid)"],["sequence","Attack Sequence Diagram"],["bdd","Block Definition Diagram (BDD)"],["mitre","MITRE ATT&CK Mapping"],["req","Security Requirements"],["coa","Courses of Action"],["stpa","STPA-Sec Analysis"]].map(([k,lbl])=>(
                     <label key={k} className="ck"><input type="checkbox" checked={checks[k]} onChange={()=>toggle(k)}/><span>{lbl}</span></label>
                   ))}
                 </div>
@@ -942,6 +768,7 @@ export default function MBSEBuilder() {
             CYB-5620V SECURE CYBER RESILIENT ENGINEERING · MBSE SCENARIO BUILDER · POWERED BY CLAUDE AI · FOR EDUCATIONAL USE<br/>
             M2 ICS Threats · M3 SCRE Policy · M4 Approaches · M5 Pipeline · M6 Silverfish UGV · M7 Silverfish SDAD · M8 Guardian GAVIN<br/>
             Diagrams render in-browser via Mermaid · Right-click → Copy Image → PowerPoint / Word
+
           </div>
         </div>
       </div>
