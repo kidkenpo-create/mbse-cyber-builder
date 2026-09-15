@@ -530,7 +530,7 @@ function buildCss(dark) {
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function MBSEBuilder() {
   const mermaidReady = useMermaid();
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
   const [mk, setMk] = useState("m6");
   const mod = MODULES[mk];
 
