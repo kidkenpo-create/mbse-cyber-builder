@@ -579,7 +579,8 @@ export default function MBSEBuilder() {
   // ── Phase 1: Mode & Wizard State ─────────────────────────────────────────
   const [mode, setMode]           = useState("instructor"); // "instructor" | "student"
   const [wizStep, setWizStep]     = useState(1);            // 1=Mission 2=Threat 3=Artifacts
-  const [predictions, setPredictions] = useState({ losses:"", mitre:"" });
+  const [predLosses, setPredLosses] = useState("");
+  const [predMitre,  setPredMitre]  = useState("");
   const [predSaved, setPredSaved] = useState(false);
   const [unlockedTabs, setUnlockedTabs] = useState(["Narrative"]);
 
@@ -591,6 +592,8 @@ export default function MBSEBuilder() {
     setUnlockedTabs(["Narrative"]);
     setParsed(null);
     setRaw("");
+    setPredLosses("");
+    setPredMitre("");
   };
 
   // Progressive unlock helper
@@ -936,11 +939,11 @@ export default function MBSEBuilder() {
         <div className="predict-title">🎯 YOUR PREDICTIONS — SAVED</div>
         <div className="predict-saved">
           <div className="predict-saved-label">Losses you predicted</div>
-          <div>{predictions.losses || "(none entered)"}</div>
+          <div>{predLosses || "(none entered)"}</div>
         </div>
         <div style={{marginTop:6}} className="predict-saved">
           <div className="predict-saved-label">MITRE technique you expected</div>
-          <div>{predictions.mitre || "(none entered)"}</div>
+          <div>{predMitre || "(none entered)"}</div>
         </div>
         <div style={{fontFamily:"'Share Tech Mono',monospace",fontSize:9,color:_txtMuted,marginTop:6,lineHeight:1.7}}>
           Compare these against the AI analysis as each tab unlocks. Where were you right? Where did it surprise you?
@@ -952,13 +955,13 @@ export default function MBSEBuilder() {
         <div className="predict-title">🎯 BEFORE YOU GENERATE — MAKE YOUR PREDICTIONS</div>
         <div className="predict-q" style={{color:_txt}}>What do you think the top losses (L-statements) will be?</div>
         <textarea className="predict-ta" rows={2}
-          value={predictions.losses}
-          onChange={e=>setPredictions(p=>({...p,losses:e.target.value}))}
+          value={predLosses}
+          onChange={e=>setPredLosses(e.target.value)}
           placeholder="e.g. L-1: Friendly casualties, L-2: Mission failure, L-3: System unavailability..." />
         <div className="predict-q" style={{color:_txt,marginTop:8}}>What MITRE ATT&CK technique do you expect to appear first?</div>
         <textarea className="predict-ta" rows={1}
-          value={predictions.mitre}
-          onChange={e=>setPredictions(p=>({...p,mitre:e.target.value}))}
+          value={predMitre}
+          onChange={e=>setPredMitre(e.target.value)}
           placeholder="e.g. T1566.001 Spearphishing, T0836 Modify Parameter, T1078 Valid Accounts..." />
         <div style={{display:"flex",gap:6,marginTop:8}}>
           <button className="wiz-next" style={{flex:1}} onClick={()=>{ setPredSaved(true); generate(); }}>
@@ -1091,7 +1094,7 @@ export default function MBSEBuilder() {
                       {predSaved && <PredictPanel />}
                       <button className="wiz-next" style={{width:"100%",marginTop:8}} onClick={()=>{
                         setParsed(null); setRaw(""); setPredSaved(false);
-                        setPredictions({losses:"",mitre:""});
+                        setPredLosses(""); setPredMitre("");
                         setUnlockedTabs(["Narrative"]);
                       }}>⬡ New Scenario</button>
                       <button className="wiz-back" style={{width:"100%",marginTop:6}} onClick={()=>setWizStep(2)}>← Change Parameters</button>
