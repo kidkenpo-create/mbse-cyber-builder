@@ -429,8 +429,8 @@ function buildPrompt(mk, scen, sys, actor, soph, acq, role, extra, checks) {
     + "===BLOCK DEFINITION DIAGRAM===\n" + (checks.bdd ? "ASCII BDD relevant to " + mod.fullLabel + ". Show Attacker, Target System blocks, Security/Resilience Control blocks with interfaces. Use MBSE BDD notation style." : "SKIP") + "\n\n"
     + "===MITRE ATTACK MAPPING===\n" + (checks.mitre ? "6-10 techniques most relevant to this module and scenario. Prefer ICS matrix for OT scenarios. Format each line exactly: Tactic | TechniqueID | Technique Name | How it applies to this specific scenario" : "SKIP") + "\n\n"
     + "===SECURITY REQUIREMENTS===\n" + (checks.req ? "8-12 SHALL requirements for " + mod.fullLabel + ". Format each line: REQ-ID | SHALL statement | Priority H/M/L | NIST 800-53 Control | Relevant DoDI. Ground requirements in module-specific context." : "SKIP") + "\n\n"
+    + "===STPA-SEC ANALYSIS===\n" + (checks.stpa ? "Full STPA-Sec grounded in " + mod.fullLabel + ":\n1. LOSSES (L-1 to L-5): mission-level unacceptable outcomes\n2. HAZARDS (H-1 to H-6): system states leading to losses\n3. CONTROL STRUCTURE: Controller, Control Actions, Controlled Process, Feedback channels\n4. HAZARDOUS CONTROL ACTIONS: For 2 key control actions, list all 4 HCA types (provided-when-shouldnt, not-provided-when-should, wrong-timing, wrong-duration)\n5. LOSS SCENARIOS (LS-1 to LS-4): adversary action -> HCA -> hazard -> loss chain" : "SKIP") + "\n\n"
     + "===COURSES OF ACTION===\n" + (checks.coa ? "5-8 COAs for " + mod.fullLabel + ". For each: Name | Description | Effectiveness | Tradeoffs. Include SCRE-specific techniques (FOREST, Sentinel, design patterns where relevant)." : "SKIP") + "\n\n"
-    + "===STPA-SEC ANALYSIS===\n" + (checks.stpa ? "Full STPA-Sec grounded in " + mod.fullLabel + ":\n1. LOSSES (L-1 to L-5): mission-level unacceptable outcomes\n2. HAZARDS (H-1 to H-6): system states leading to losses\n3. CONTROL STRUCTURE: Controller, Control Actions, Controlled Process, Feedback channels\n4. HAZARDOUS CONTROL ACTIONS: For 2 key control actions, list all 4 HCA types (provided-when-shouldnt, not-provided-when-should, wrong-timing, wrong-duration)\n5. LOSS SCENARIOS (LS-1 to LS-4): adversary action → HCA → hazard → loss chain" : "SKIP") + "\n\n"
 
     + "===DISCUSSION QUESTIONS===\n"
     + "5 discussion questions specifically aligned to " + mod.elos + ". Each question should reference specific content from " + mod.fullLabel + ", require application of CRRM/STPA-Sec methodology, and be suitable for a 30-40 minute class discussion.\n\n"
@@ -536,7 +536,7 @@ export default function MBSEBuilder() {
           "anthropic-dangerous-direct-browser-access": "true",
         },
         body: JSON.stringify({
-          model: "claude-sonnet-4-6", max_tokens: 6000,
+          model: "claude-sonnet-4-6", max_tokens: 8000,
           messages: [{ role: "user", content: buildPrompt(mk, scen, sys, actor, soph, acq, role, extra, checks) }],
         }),
       });
