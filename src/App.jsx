@@ -4,13 +4,13 @@ import React, { useState, useEffect } from "react";
 const MODULES = {
   m2: {
     label: "M2: ICS Threats",
-    fullLabel: "Module 2 — ICS Threats & Adversaries",
+    fullLabel: "Module 2 — ICS Threats: From Persistent Access to Physical Consequence",
     color: "#ff4444",
     day: "Day 1",
-    focus: "Threat Tiers, APTs, ICS attack history, co-evolving threats, DOT&E findings",
+    focus: "Cyber→Control→Physical threat model; OT envelope (Safety/Availability/Quality); DSB Threat Tiers; APTs; ICS attack history; DOT&E findings",
     scenarios: [
       { value: "fancy_bear_ics",    label: "Fancy Bear (APT28/XAgent) ICS Campaign" },
-      { value: "colonial_pipeline", label: "Colonial Pipeline Ransomware-Style Attack" },
+      { value: "colonial_pipeline", label: "Colonial Pipeline — IT Ransomware / OT Consequence" },
       { value: "stuxnet",           label: "Stuxnet-Style PLC Physical Damage Attack" },
       { value: "blackenergy",       label: "BlackEnergy2/3 Critical Infrastructure" },
       { value: "triton_sis",        label: "TRITON/TRISIS Safety System Attack" },
@@ -21,7 +21,7 @@ const MODULES = {
       { value: "ics_scada",    label: "ICS/SCADA Control System" },
       { value: "plc_modbus",   label: "PLC / Modbus Protocol Network" },
       { value: "can_bus",      label: "CAN Bus OT Network" },
-      { value: "safety_sis",   label: "Safety Instrumented System (SIS/SIS)" },
+      { value: "safety_sis",   label: "Safety Instrumented System (SIS)" },
       { value: "grid_ot",      label: "Electric Grid OT System" },
       { value: "ot_it_boundary", label: "OT/IT Network Boundary" },
     ],
@@ -30,20 +30,20 @@ const MODULES = {
       { value: "cozy_bear",    label: "Cozy Bear / APT29 (Russian SVR)" },
       { value: "sandworm",     label: "Sandworm Team (Industroyer/BlackEnergy)" },
       { value: "prc_apt",      label: "PRC Nation-State APT (pre-positioning)" },
-      { value: "criminal_rw",  label: "Criminal Ransomware Group" },
+      { value: "criminal_rw",  label: "Criminal Ransomware Group (DarkSide-style)" },
     ],
     acq: "far",
     role: "gov_sca",
-    context: "DOT&E FY21: 400+ cybersecurity assessments, DoD lags adversary capabilities. Threat tiers: co-evolving, zero-day APT capabilities. Fancy Bear (APT28/Sofacy): operating since 2008, XAgent implant, X-Tunnel/WinIDS/Foozer/DownRange tools, phishing + credential harvesting, targets aerospace/defense/energy/gov. Key CVEs: CVE-2017-5753 Spectre, CVE-2017-5754 Meltdown, ICS-ALERT-17-209-01 CAN Bus bus-off mode, CVE-2022-45788 Modbus PLC bypass. ICS attacks: Stuxnet (2010 centrifuges), BlackEnergy2/3 (2014-15 power grid), Industroyer/Crashoverride (2016 grid), TRITON (2017 SIS), Industroyer2 (2022). OT requires different people/processes/technology than IT. ODNI 2024 Threat Assessment: China most active/persistent, Russia maintains ICS targeting capability.",
+    context: "M2 threat model: Cyber Access → Control Action → Physical Effect. OT operating envelope: Safety (people + environment), Availability (continuous process), Quality (within specification). Cyber-physical systems turn cyber events into process consequences — in OT, confidentiality matters but safety, availability, quality, and deterministic control define the operating envelope. DSB Threat Tiers: co-evolving threat — 'Is your system secure and resilient against APTs?' DOT&E FY21: 400+ cybersecurity assessments; DoD lags adversary capabilities. Fancy Bear (APT28/Sofacy): operating since 2008, XAgent implant, X-Tunnel/WinIDS tools, phishing + credential harvesting, targets aerospace/defense/energy/gov. Colonial Pipeline: DarkSide ransomware on IT network — NO DIRECT OT IMPACT WAS REQUIRED; Colonial proactively shut pipeline while assessing. 6 days operational consequence. Key CVEs: CVE-2022-45788 Modbus PLC bypass. ICS attacks: Stuxnet (2010), BlackEnergy2/3 (2014-15), Industroyer/Crashoverride (2016), TRITON (2017 SIS), Industroyer2 (2022). OT requires different people/processes/technology than IT.",
     elos: "TLO-1 ELO.3 (appraise attack methods), ELO.4 (appraise threat data), ELO.5 (define protection constraints)",
   },
 
   m3: {
     label: "M3: SCRE Policy",
-    fullLabel: "Module 3 — SCRE Policy & Acquisition",
+    fullLabel: "Module 3 — SCRE Policy: Policy → Requirements → Design → Evidence → Lifecycle Risk",
     color: "#a78bfa",
     day: "Day 1",
-    focus: "DoD acquisition policy, DoDI landscape, CS KPP, CSAs, PPP, CRRM in acquisition lifecycle",
+    focus: "FRAME→THREAT→GOVERN→ENGINEER→EXERCISE sequence; policy stack (5000.02 Chg2 Apr 2026); SEP as engineering thread; PM risk ownership across lifecycle",
     scenarios: [
       { value: "dodi_gap",       label: "DoDI 5000.90 Cybersecurity Gap Exploitation" },
       { value: "cs_kpp",         label: "Cyber Survivability KPP Requirement Failure" },
@@ -68,7 +68,7 @@ const MODULES = {
     ],
     acq: "mda",
     role: "gov_pm",
-    context: "DoDI policy landscape: 5000.02 (PM cybersecurity responsibility), 5000.80 MTA, 5000.81 Urgent, 5000.82 IT, 5000.83 Tech/Program Protection (PPP), 5000.85 MDA, 5000.87 Software, 5000.90 Cybersecurity, 5200.39 CPI/AT, 5200.44 TSN, DoDD 5200.47E, JCIDS CS KPP, CJCI 5123.01H, CSE Guide v3. SCRE standardization: NIST 800-160 v2 Rev.1 (anticipate/withstand/recover/adapt). Cyberspace Security → Cyberspace Resilience → Operational Resilience → Cyberspace Survivability (lifecycle risk posture). Cyber Survivability Attributes (CSAs). SEP SSE Section 3.2.11: PPP, SW/HW assurance, mapping design considerations into contracts. CRRM iterated at various V-model stages.",
+    context: "M3 Day 1 sequence: FRAME (digital engineering context) → THREAT (threat-informed design) → GOVERN (policy + acquisition) → ENGINEER (SCRE approaches) → EXERCISE (ICS environment). Policy stack (refs current to 2 Sep 2026): Acquisition Framework — 5000.02 Chg 2 (8 Apr 2026), pathway policy, decision authority. Engineering + Protection — 5000.88 Engineering, 5000.83 T&PP, 5200.39 CPI, 5200.44 TSN/SCRM. Cyber Risk + Authorization — 5000.90 PM/decision-authority risk, 8510.01 RMF for DoD systems. Mission Evidence — 5000.98 OT&E, 5000.103 cyber DT&E, survivability evidence. PM owns cybersecurity from concept through disposal — continuous control loop. SEP makes security an engineering thread (not an appendix): Design Considerations, Technical Reviews, Contract Language, Governance. NIST 800-160 v2 Rev.1: anticipate/withstand/recover/adapt. Cyberspace Survivability lifecycle risk posture. Cyber Survivability Attributes (CSAs).",
     elos: "TLO-1 ELO.5 (protection constraints), ELO.6 (V&V objectives), TLO-2 ELO.5 (record/report data)",
   },
 
@@ -77,7 +77,7 @@ const MODULES = {
     fullLabel: "Module 4 — SCRE Approaches & Building Blocks",
     color: "#34d399",
     day: "Day 1",
-    focus: "SCRE building blocks: STPA-Sec, CRRM, FOREST, Sentinel, MITRE Resilience, design patterns",
+    focus: "SCRE building blocks: STPA-Sec, CRRM, FOREST, Sentinel, MITRE Resilience, design patterns — 09:30–10:00 Day 1",
     scenarios: [
       { value: "stpa_adversity",   label: "STPA-Sec Adversity Chain (Injection/Spoofing)" },
       { value: "crrm_full",        label: "Full CRRM Methodology Application" },
@@ -102,18 +102,18 @@ const MODULES = {
     ],
     acq: "mta_rapid",
     role: "gov_lse",
-    context: "SCRE building blocks: (1) Loss-Based Engineering — STPA-Sec (systems fail via injection/spoofing/DoS/tampering/intercepting/disclosing). (2) Mission-Focused Awareness — Mission-Aware Sentinel. (3) Resiliency in Acq Lifecycle — CSAs and Resilient Modes, FOREST. (4) Resiliency Objectives/Techniques — MITRE Resilience Framework. (5) Cyber/Resiliency Responsibilities — CRRM Methodology. CRRM Process: STPA-Sec + Security + Resiliency. Design patterns: Distributed Privileges, Data Input Validation, Single Access Point, Segmentation, Privilege Reduction. Circuit Breaker pattern (Netflix Hystrix model). Attack Countermeasure Tree. ATT&CK to drive adversity. Redundancy technique (Firesmith). Adversity-driven engineering mindset: model adversary TTPs, hierarchical control model.",
+    context: "SCRE building blocks: (1) Loss-Based Engineering — STPA-Sec (adversity chain: injection/spoofing/DoS/tampering/disclosing). (2) Mission-Focused Awareness — Mission-Aware Sentinel. (3) Resiliency in Acq Lifecycle — CSAs and Resilient Modes, FOREST. (4) Resiliency Objectives/Techniques — MITRE Resilience Framework (NIST 800-160 V2). (5) Cyber/Resiliency Responsibilities — CRRM Methodology. CRRM: Hazard Analysis → Loss Scenario Assessment → Assurance Cases. ELOs TLO-1: Identify/prioritize assets, derive protection concerns, appraise attack methods, appraise threat data, define design constraints/priorities, define V&V objectives. ELOs TLO-2: Identify asset loss concerns, collect adversity data, develop scenarios, evaluate with modeling/simulation, record/report adversity-driven technical data. Design patterns: Distributed Privileges, Data Input Validation, Single Access Point, Segmentation, Privilege Reduction. Adversity types: not providing control action, providing too early/late, providing wrong content, stopping too soon. FOREST: sense/isolate/options/evaluation/confidence/readiness/execution.",
     elos: "TLO-1 ELO.1-6 (full), TLO-2 ELO.1-5 (full adversity-driven data)",
   },
 
   m5: {
     label: "M5: Pipeline ICS",
-    fullLabel: "Module 5 — ICS Systems: Pipeline Case Study",
+    fullLabel: "Module 5 — SCRE for ICS: Pipeline Case Study",
     color: "#fbbf24",
     day: "Day 1",
-    focus: "Pipeline SCADA case study, Fancy Bear attack, MBSE control structure, kill chain vs adversity chain, FOREST resilience",
+    focus: "Pipeline SCADA case study (fictional APT28-inspired); MBSE control structure; Sense→Control→Visualize→Act→Safety model; FOREST resilience; assurance cases",
     scenarios: [
-      { value: "fancy_bear_pipeline",  label: "Fancy Bear Attack on Pipeline SCADA" },
+      { value: "fancy_bear_pipeline",  label: "Fictional APT28-Inspired Pipeline SCADA Attack" },
       { value: "rtu_compromise",       label: "RTU Remote Terminal Unit Compromise" },
       { value: "hmi_manipulation",     label: "Main Control Room HMI Manipulation" },
       { value: "leak_detect_suppress", label: "Leak Detection System Suppression" },
@@ -123,37 +123,37 @@ const MODULES = {
     ],
     systems: [
       { value: "pipeline_scada",  label: "Interstate Pipeline SCADA (Main Control Room)" },
-      { value: "pipeline_rtu",    label: "Remote Terminal Unit (RTU) Network" },
+      { value: "pipeline_rtu",    label: "Remote Terminal Unit (RTU) / PLC Network" },
       { value: "pipeline_hmi",    label: "Operator HMI / Field Interface" },
       { value: "pipeline_adv",    label: "Advanced Pipeline Apps (Leak Detection/Pig Tracking)" },
       { value: "pipeline_field",  label: "Field Instrumentation (Flow/Pressure/Temp)" },
     ],
     actors: [
-      { value: "fancy_bear_pipe",  label: "Fancy Bear / APT28 (XAgent on SCADA)" },
-      { value: "criminal_colonial", label: "Criminal Ransomware (Colonial Pipeline-style)" },
+      { value: "fancy_bear_pipe",  label: "APT28-Inspired Threat (training hypothesis — not Colonial attribution)" },
+      { value: "criminal_colonial", label: "Criminal Ransomware (Colonial Pipeline-style IT impact)" },
       { value: "nation_ics",       label: "Nation-State ICS Specialist" },
     ],
     acq: "far",
     role: "gov_lse",
-    context: "Interstate Oil/Gas Pipeline: fictional system, 1.98M km natural gas, 240k km petroleum (US). Colonial Pipeline attack precedent. Fancy Bear: XAgent implant on SCADA systems. Architecture: Field instruments (flow/pressure/temp) → RTUs (satellite/microwave/cellular) → Main Control Room SCADA/HMI → Advanced Pipeline Applications (leak detection, batch tracking, pig tracking, predictive modeling). Operator sends commands: open/close valves, start/stop compressors, change setpoints. CVE-2022-45788 Modbus PLC RCE bypass. STPA Control Structure for pipeline. Breaking the chain: Kill Chain (Assurance Cases, threat/vuln-driven) vs Adversity Chain (Resilience Mechanisms, hierarchical control model). FOREST: sense/isolate/options/evaluation/confidence/readiness/execution. Sentinel scenarios. Loss Scenario Assessment. Reduce LS likelihood (assurance case) and consequence (sentinel).",
-    elos: "TLO-1 ELO.1-6, TLO-2 ELO.1-5, CRRM pipeline application",
+    context: "M5 Pipeline Case Study: fictional interstate energy pipeline for instruction. US has 3.3M miles of pipelines; 64% of US energy moves by pipeline. Colonial Pipeline: DarkSide ransomware on IT — CISA/FBI: no indication OT directly affected; proactive shutdown caused 6-day consequence. Fictional APT28-inspired attack is a training hypothesis, NOT attribution. Pipeline ConOps: (1) SENSE — field instruments measure flow/pressure/temp/valve state; (2) CONTROL — RTUs/PLCs collect signals, execute logic; (3) VISUALIZE — SCADA consolidates data/alarms/trends; (4) ACT — operators issue commands to pumps/compressors/valves; (5) SAFETY — advanced apps (leak detection, batch/pig tracking, hydraulic modeling). MBSE traceable management of STPA artifacts. Build control structure → analyze abnormal behavior → engineer cyber resilience. CVE-2022-45788 Modbus PLC RCE bypass. FOREST resilience. Reduce LS likelihood (assurance case) and consequence (sentinel).",
+    elos: "TLO-1 ELO.1-6, TLO-2 ELO.1-5, CRRM pipeline application, MBSE control structure",
   },
 
   m6: {
     label: "M6: Silverfish UGV",
-    fullLabel: "Module 6 — Silverfish UGV Part 1 (Hazard Analysis & Assurance Cases)",
+    fullLabel: "Module 6 — UGV Area Denial: Loss-Based Cyber-Resilience (CRRM · STPA-Sec · MBSE)",
     color: "#00d4ff",
-    day: "Day 2",
-    focus: "STPA-Sec deep dive: losses, hazards, HCAs, loss scenarios, assurance cases — Silverfish Area Denial system",
+    day: "Day 1",
+    focus: "CRRM Hazard Analysis + Loss Scenario Assessment; STPA-Sec: losses/hazards/HCAs/loss scenarios/assurance cases; Silverfish single-operator UGV; Student MBSE Exercise 15:00-16:00",
     scenarios: [
-      { value: "sf_full_attack",    label: "Silverfish AD — Full Area Denial Attack Chain" },
-      { value: "sf_c2_compromise",  label: "Silverfish AD — C2 Link Compromise" },
-      { value: "sf_sensor_spoof",   label: "Silverfish AD — Sensor Spoofing / False Classification" },
-      { value: "sf_insider",        label: "Silverfish AD — Malicious Maintenance Technician" },
-      { value: "sf_gps_spoof",      label: "Silverfish AD — GPS Spoofing / Out-of-Zone Engagement" },
+      { value: "sf_full_attack",     label: "Silverfish AD — Full Area Denial Attack Chain" },
+      { value: "sf_c2_compromise",   label: "Silverfish AD — C2 Link Compromise" },
+      { value: "sf_sensor_spoof",    label: "Silverfish AD — Sensor Spoofing / False Classification" },
+      { value: "sf_insider",         label: "Silverfish AD — Malicious Maintenance Technician" },
+      { value: "sf_gps_spoof",       label: "Silverfish AD — GPS Spoofing / Out-of-Zone Engagement" },
       { value: "sf_hazard_analysis", label: "CRRM Hazard Analysis (STPA-Sec Losses/Hazards)" },
-      { value: "sf_loss_scenario",  label: "CRRM Loss Scenario Assessment" },
-      { value: "sf_assurance_case", label: "Assurance Case Development (Claim→Evidence→SHALL)" },
+      { value: "sf_loss_scenario",   label: "CRRM Loss Scenario Assessment" },
+      { value: "sf_assurance_case",  label: "Student MBSE Assurance Case Exercise (Claim→Evidence→SHALL)" },
     ],
     systems: [
       { value: "sf_ugv",     label: "Silverfish UGV — Area Denial Platform (single operator)" },
@@ -168,40 +168,40 @@ const MODULES = {
     ],
     acq: "mta_rapid",
     role: "gov_lse",
-    context: "Silverfish Area Denial UGV: rapidly deployable ground-based UGV weapons platforms. Single operator. Mission: deter/prevent adversaries from trespassing designated geographic area near strategically sensitive site. Sensors classify trespassers as PERSONNEL or VEHICLES. CRRM process: Hazard Analysis → Loss Scenario Assessment → Assurance Cases. STPA-Sec: Losses (L-1 mission/safety/availability/integrity/confidentiality), Hazards (H-1 system states violating constraints), Control Structure (Operator→C2→UGV→Physical Domain, with feedback), Hazardous Control Actions for ENGAGE and HALT (4 types: provided when shouldn't, not provided when should, wrong timing, wrong duration), Loss Scenarios (adversary action→HCA→hazard→loss). Assurance Case structure: Claim→Evidence→Argument→SHALL requirement with NIST 800-53 controls. Use Cases: Deploy UGV, Protect Field, Control Structure analysis. MTA acquisition, SOW/SRD requirements.",
-    elos: "ELO.14.A (STPA hazard analysis), ELO.14.B (control structure), ELO.14.D (threat data), ELO.14.E (acquisition), ELO.15.A (mission requirements), ELO.15.E (assurance cases)",
+    context: "Silverfish AD: rapidly deployable ground-based UGV platforms, single operator. Mission: deter/prevent adversaries from trespassing designated geographic area near strategically sensitive area. Sensors classify PERSONNEL or VEHICLES. Basis: SERC-2018-TR-110 (hypothetical). Cyber resilience must be engineered not bolted on — start with mission consequences, analyze unacceptable loss before selecting controls. PO.15.A: summarize Mission Driven requirements based on STPA to address loss in cyber-contested environment. PO.14.B: review/enhance/adapt weapon system requirements — comprehend stakeholder requirements and transform into scenarios addressing availability/confidentiality/integrity/timing violations. PO.15.E: summarize and discuss adversity-related technical data. PO.14.A: identify Mission Driven requirements using DoD CPI and Critical Function processes. PO.14.D: summarize vulnerabilities in fielded systems using threat frameworks and intel-derived TTPs. CRRM: Hazard Analysis (Losses→Hazards→Control Structure→HCAs) + Loss Scenario Assessment (adversary→HCA→hazard→loss) + Assurance Cases (Claim→Evidence→Argument→SHALL). Control Structure: Operator→C2→UGV→Physical Domain. HCAs for ENGAGE and HALT (4 types). Student MBSE Assurance Case Exercise at 15:00-16:00.",
+    elos: "PO.14.A, PO.14.B, PO.14.D, PO.14.E, PO.15.A, PO.15.E (note: v2 slides use PO not ELO prefix)",
   },
 
   m7: {
     label: "M7: Silverfish SDAD",
-    fullLabel: "Module 7 — Silverfish UGV Part 2 (SDAD: Sentinel & Resilience)",
+    fullLabel: "Module 7 — SCRE MBSE for Enhanced Mission: SDAD (Mission→Loss→Detection→Response→Evidence)",
     color: "#f472b6",
     day: "Day 2",
-    focus: "SDAD mission: Sentinel scenarios, FOREST resilience architecture, resilience requirements, resilient modes of operation",
+    focus: "SDAD: Loss Scenarios → Sentinel Detection → Resilience Architecture → Resilience Requirements; resilient modes; FOREST consequence reduction; testable resilience requirements",
     scenarios: [
-      { value: "sdad_loss_scenario",  label: "SDAD CRRM Loss Scenario Assessment" },
-      { value: "sdad_sentinel",       label: "SDAD Sentinel Scenario Detection (behavior-sentinel)" },
-      { value: "sdad_resilience_arch", label: "SDAD CRRM Resilience Architecture" },
-      { value: "sdad_resilience_req",  label: "SDAD CRRM Resilience Requirements (FOREST/CSA)" },
+      { value: "sdad_loss_scenario",   label: "SDAD CRRM Loss Scenario Assessment" },
+      { value: "sdad_sentinel",        label: "SDAD Sentinel Scenario — Detect Abnormal Behavior" },
+      { value: "sdad_resilience_arch", label: "SDAD CRRM Resilience Architecture (Sentinel→Resilient Mode)" },
+      { value: "sdad_resilience_req",  label: "SDAD CRRM Resilience Requirements (FOREST/CSA testable)" },
       { value: "sdad_hazard_enhanced", label: "SDAD Enhanced Mission Hazard Analysis" },
       { value: "sdad_control_flow",    label: "SDAD Control Flow with Sentinel Flows" },
-      { value: "sdad_resilient_mode",  label: "SDAD Resilient Modes of Operation" },
+      { value: "sdad_resilient_mode",  label: "SDAD Resilient Modes of Operation (Protected UGV)" },
     ],
     systems: [
-      { value: "sdad_platform",    label: "Silverfish SDAD — Safe Deployment Area Denial" },
-      { value: "sdad_control",     label: "SDAD Control Structure (Enhanced Mission)" },
-      { value: "sdad_sentinel_sys", label: "SDAD Sentinel Detection / Profile System" },
-      { value: "sdad_resilient",   label: "SDAD Resilient Architecture (Protected UGV Clear/Deploy/Fire)" },
+      { value: "sdad_platform",     label: "Silverfish SDAD — Safe Deployment Area Denial" },
+      { value: "sdad_control",      label: "SDAD Extended Control Structure (Enhanced Mission)" },
+      { value: "sdad_sentinel_sys", label: "SDAD Sentinel Detection / Behavioral Profile System" },
+      { value: "sdad_resilient",    label: "SDAD Resilient Architecture (Protected UGV Clear/Deploy/Fire)" },
     ],
     actors: [
-      { value: "nation_sdad",    label: "Nation-State APT (SDAD Adversary)" },
-      { value: "multi_vector",   label: "Multi-Vector Attack (GPS+C2+Sensor simultaneous)" },
-      { value: "insider_sdad",   label: "Insider Threat (SDAD)" },
+      { value: "nation_sdad",  label: "Nation-State APT (SDAD Multi-Vector)" },
+      { value: "multi_vector", label: "Multi-Vector Attack (GPS+C2+Sensor simultaneous)" },
+      { value: "insider_sdad", label: "Insider Threat (SDAD)" },
     ],
     acq: "mta_rapid",
     role: "gov_lse",
-    context: "Silverfish SDAD (Safe Deployment Area Denial): extended mission from Module 6. 4 CRRM models: Mission/System Overview, CRRM Loss Scenario Assessment, CRRM Resilience Architecture, CRRM Resilience Requirements. SDAD Use Cases: Deploy to Field, Perform Safe Deployment Area Denial Mission. SDAD Control Structure with Control Actions. SDAD Hazard Analysis and Hazardous Actions. SDAD Loss Scenario Assessment. Adversity Chain: SCRE overview. Assurance Cases. Sentinel Profile: behavior-sentinel scenario, control-structure-loss-scenario diagram. FOREST resilience: sense/isolate/options/evaluation/confidence/readiness/execution — Reduce LS consequence. Resilience Architecture: Resilience Profile, Protected UGV Clear, Protected A2 Deploy/Fire/RR. Resilient Control Structure. Resilience Requirements linked to CSAs. Eliciting Assurance Case-based AND Resilience-based requirements.",
-    elos: "ELO.14.A–ELO.15.E full module, Sentinel scenarios, FOREST, Resilient Modes, Resilience Requirements",
+    context: "M7 SDAD (Safe Deployment Area Denial) — updated September 2026. Mission→Loss→Detection→Response→Evidence sequence. CRRM Loss Scenario Assessment: Mission Loss → Hazard → Unsafe Action (control provided/omitted/mistimed/prolonged) → Loss Scenario (why unsafe action can occur) → Sentinel (observable signal of abnormal behavior). PO.15.B: summarize adversity attacks for data collection. PO.15.C: explain control flows to identify unsafe control actions. CRRM Resilience Architecture: PO.16.B (design cyber-resilient solution from implemented solution), PO.16.C (develop design constraints in model, describe security features), PO.16.D (TTPs analysis and recommendations for mission success). Resilience Architecture: Sentinel detection MUST trigger viable resilient mode — detection creates value only when architecture can choose and execute a resilient mode that preserves the mission. CRRM Resilience Requirements: PO.14.F, PO.15.D, PO.16.E. Requirement areas: defensive mechanisms for components/interfaces; architectural/behavioural extensions for sentinel scenarios and resilient modes; test support capabilities; resilience performance needs. Resilience requirement pattern: 'When [sentinel condition], the system shall [resilient action] within [threshold], while maintaining [mission measure], and shall produce [verification evidence].' M7 Assignment: Frame Loss → Generate Options (Resiliency Technique / Assurance Case / Accept Risk) → Test Rationale → Make the Call. FOREST reduces consequence; Assurance Cases reduce likelihood.",
+    elos: "PO.15.B, PO.15.C, PO.16.B, PO.16.C, PO.16.D, PO.14.F, PO.15.D, PO.16.E (v2 uses PO prefix)",
   },
 
   m8: {
@@ -235,7 +235,7 @@ const MODULES = {
     ],
     acq: "mta_rapid",
     role: "opfor",
-    context: "GAVIN (Guardian Aerial Vehicle Interoperability Node): Army/USMC joint program. MTA ACAT II, PEO Ground Combat Systems Detroit Arsenal / PEO LS Marine Corps Quantico. Army 2,000 / USMC 500 units, IOC 3 years, Rapid Prototyping→Rapid Fielding. Missions: (1) Interoperability — laser designator on enemy armored vehicle 5-10 sec dwell, UGV conducts attack; (2) Seek and Destroy — onboard weapons only, enemy detects/attacks GAVIN if in range. CTT OPFOR: Potential Targets, Desired Effects, Goals of Attack, Potential Attack Classes, Context. Control Structure and Sequence diagrams are the adversary playing field. Assignment 2: Mitigations via Resiliency Techniques / Assurance Cases / Accept Risk. Contracting: SOW criticality/vuln/risk/countermeasures, RFP Sections L&M SCRE metrics, CDRL. Design patterns: Distributed Privileges, Data Input Validation, Segmentation, Single Access Point, Privilege Reduction (SysML Activity Diagrams). NIST 800-160V2R1 14 techniques + Sentinel. CSA Level 2 table traceability to SCRE. RMF controls traceability to SCRE. Criticality Analysis: 2 missions, 3 critical functions, limited budget/time.",
+    context: "GAVIN (Guardian Aerial Vehicle Interoperability Node): Army/USMC joint program. MTA ACAT II, PEO Ground Combat Systems Detroit Arsenal / PEO LS Marine Corps Quantico. Army 2,000 / USMC 500 units, IOC 3 years, Rapid Prototyping→Rapid Fielding. Missions: (1) Interoperability — laser designator on enemy armored vehicle 5-10 sec dwell, UGV conducts attack; (2) Seek and Destroy — onboard weapons only, enemy detects/attacks GAVIN if in range. Assignment 1 (1hr CTT OPFOR): Potential Targets, Desired Effects, Goals of Attacker, Potential Attack Classes (evaluate attack vectors from risk perspective — NOT CVE focus), Context under which attack must succeed (timing: too early/late/wrong content, environmental conditions). Control Structure and Sequence diagrams are the adversary playing field. Assignment 2 (40-min decision path): Frame the Loss (5min) → Generate Options/3 routes (15min) → Test the Rationale (10min) → Make the Call (10min). THREE ROUTES: (R) Resiliency Technique — reduce impact, restore function, alternate path; (A) Assurance Case — strengthen evidence, controls, verification; (R) Accept Risk — state rationale, conditions, follow-up. Output: Defensible Recommendation with rationale, owner, next action. CSA Level 2 table traceability to SCRE. RMF controls traceability. Design patterns: Distributed Privileges, Data Input Validation, Segmentation, Single Access Point, Privilege Reduction (SysML Activity Diagrams). NIST 800-160V2R1 14 techniques + Sentinel. Criticality Analysis: 2 missions, 3 critical functions, limited budget/time.",
     elos: "ELO.14.A–ELO.15.E full, CTT OPFOR, Criticality Analysis, SCRE Design Patterns, CSA/RMF traceability, SOW/SRD/CDRL contracting requirements",
   },
 };
@@ -1588,7 +1588,78 @@ export default function MBSEBuilder() {
     step3: {
       bloom: "apply",
       title: "How each artifact maps to CRRM",
-      body: `CRRM (from Module 4) is a three-step process — Hazard Analysis → Loss Scenario Assessment → Assurance Cases. Each artifact you select corresponds to a step. <b>STPA-Sec</b> is the analytical core. <b>MITRE ATT&CK</b> maps adversary TTPs. <b>Security Requirements</b> close the loop to acquisition policy and DoDI compliance. Each artifact also maps to a Bloom's taxonomy level — shown below.`,
+      body: `CRRM (from Module 4) is a three-step process — Hazard Analysis → Loss Scenario Assessment → Assurance Cases. Each artifact you select corresponds to a step. <b>STPA-Sec</b> is the analytical core. <b>MITRE ATT&CK</b> maps adversary TTPs. <b>Security Requirements</b> close the loop to acquisition policy and DoDI compliance. Each artifact also maps to a Bloom's taxonomy level — shown below.
+
+<details style="margin-top:12px;border:1px solid #C5D8EE;border-radius:5px;overflow:hidden">
+  <summary style="padding:9px 14px;background:#E8F0F7;cursor:pointer;font-size:12px;font-weight:700;color:#2C5F8A;letter-spacing:.04em;list-style:none">
+    ▶ SEE EXAMPLES — What well-formed STPA-Sec output looks like
+  </summary>
+  <div style="padding:14px;background:#fff;font-size:12px;color:#1A2332;line-height:1.8">
+
+    <div style="font-weight:700;color:#2C5F8A;margin-bottom:6px">Nuclear Power Plant example</div>
+    <code style="display:block;background:#F0F5FA;border:1px solid #D0DDE8;border-radius:4px;padding:8px 10px;margin-bottom:10px;white-space:pre-wrap;line-height:1.7">Losses:
+L1: People injured or killed
+L2: Environment contaminated
+L3: Equipment damage (economic loss)
+
+Hazards:
+H1: Release of radioactive materials [L1, L2, L3]
+H2: Reactor temperature too high [L1, L2, L3]
+
+HCAs:
+HCA1: Reactor operator provides power increase command when reactor
+      operating conditions require power reduction [H1, H2]
+HCA5: Reactor operator does not provide shutdown command when
+      shutdown criteria are met [H1, H2]
+
+Loss Scenarios:
+LS1: Attacker injects malicious control information causing the reactor
+     power command to increase when conditions require reduction [HCA1, H2]
+LS4: Attacker prevents a required shutdown command after shutdown
+     criteria are met [HCA5, H1, H2]</code>
+
+    <div style="font-weight:700;color:#2C5F8A;margin-bottom:6px">Military Aviation example</div>
+    <code style="display:block;background:#F0F5FA;border:1px solid #D0DDE8;border-radius:4px;padding:8px 10px;margin-bottom:10px;white-space:pre-wrap;line-height:1.7">Losses:
+L1: Loss of or damage to aircraft or equipment
+L2: Serious injury or fatality to personnel
+L3: Inability to complete the mission
+
+Hazards:
+H-4: Uncommanded detonation [L1, L2, L3]
+H-6: Collateral damage or friendly fire [L1, L2, L3]
+
+HCAs:
+HCA-7: Weapon-system controller provides weapon-enable command when
+       weapon employment criteria are not met [H-4, H-5, H-6]
+HCA-10: Operators do not provide weapon-safing command when safing
+        criteria are met [H-4, H-5, H-6]
+
+Loss Scenarios:
+LS-4: Attacker injects malicious weapon-control content causing weapon-
+      enable or launch when employment criteria not met [HCA-7, H-4, H-5, H-6]
+LS-6: Attacker prevents required weapon-safing command after safing
+      criteria are met [HCA-10, H-4, H-5, H-6]</code>
+
+    <div style="font-weight:700;color:#2C5F8A;margin-bottom:6px">AI-Enabled Systems example</div>
+    <code style="display:block;background:#F0F5FA;border:1px solid #D0DDE8;border-radius:4px;padding:8px 10px;white-space:pre-wrap;line-height:1.7">Losses:
+L1: Disruption of mission-critical operations
+L2: Compromise of system integrity due to incorrect decisions
+
+HCAs:
+HCA1: AI agent uses stale data when making a decision [H1, H2]
+HCA3: AI agent fails to re-evaluate decisions when system state changes [H1, H2]
+
+Loss Scenarios:
+LS3: Attacker manipulates cached or stale data, causing AI agent to act
+     on outdated threat assessment [HCA1, H1, H2]
+LS6: Attacker injects malicious training data causing AI system to learn
+     from manipulated information [HCA1, HCA3, H1, H2]</code>
+
+    <div style="margin-top:10px;font-size:11px;color:#7EA8C4;font-style:italic">
+      Notice the consistent pattern: Losses are human/mission outcomes. Hazards reference losses in [brackets]. HCAs reference hazards in [brackets]. Loss Scenarios reference HCAs and hazards in [brackets]. The bracket notation is your traceability chain.
+    </div>
+  </div>
+</details>`,
       svg: "crrm",
     },
     narrative: {
@@ -1601,8 +1672,35 @@ export default function MBSEBuilder() {
     stpa: {
       bloom: "analyze",
       title: "What you're looking at — STPA-Sec",
-      body: `STPA-Sec asks: <b>what system states lead to unacceptable losses?</b> The five elements build on each other in sequence. <b>Losses</b> (L-statements) are mission-level outcomes the system must prevent. <b>Hazards</b> are system states that lead to losses. <b>Control Structure</b> maps who commands whom — Operator → C2 → UGV → Physical Domain. <b>Hazardous Control Actions</b> (HCAs) identify the 4 failure modes per control command. <b>Loss Scenarios</b> trace the full adversary chain.`,
-      think: `Compare the AI's loss list to what you predicted before generating. Which L-statement surprised you most? Which of the 4 HCA types — provided when shouldn't, not provided when should, wrong timing, or wrong duration — is hardest to detect in an operational system, and why?`,
+      body: `STPA-Sec asks: <b>what system states lead to unacceptable losses?</b> The five elements build on each other in a strict sequence — each one depends on the one before it.
+
+<b>1. Losses (L-statements)</b> — Mission-level outcomes the system must prevent. Not technical failures — unacceptable human or mission outcomes. Examples from real analyses:
+<code style="display:block;background:#F0F5FA;border:1px solid #C5D8EE;border-radius:4px;padding:8px 12px;margin:6px 0;font-size:12px;color:#1A2332;line-height:1.8">L1: People injured or killed
+L2: Mission-critical operations disrupted
+L3: System integrity compromised
+L4: Loss of situational awareness</code>
+
+<b>2. Hazards (H-statements)</b> — System states that lead to losses. Each hazard references its parent losses in brackets:
+<code style="display:block;background:#F0F5FA;border:1px solid #C5D8EE;border-radius:4px;padding:8px 12px;margin:6px 0;font-size:12px;color:#1A2332;line-height:1.8">H1: UGV in ENGAGED state when no authorized target present [L1, L2]
+H2: UGV fails to cease fire when HALT commanded [L1, L3]
+H3: C2 node accepts commands from unauthenticated source [L1, L2, L3]</code>
+
+<b>3. Control Structure</b> — Maps who commands whom. For Silverfish: Operator → C2 Software → UGV Platform → Physical Domain. Each link carries control actions (commands) downward and feedback (status, sensor data) upward.
+
+<b>4. Hazardous Control Actions (HCAs)</b> — For each control action, there are exactly <em>four</em> ways it can be hazardous. Each HCA references its parent hazards:
+<code style="display:block;background:#F0F5FA;border:1px solid #C5D8EE;border-radius:4px;padding:8px 12px;margin:6px 0;font-size:12px;color:#1A2332;line-height:1.8">HCA1: Operator provides ENGAGE when engagement criteria not met [H1, H2]
+HCA2: Operator does not provide HALT when halt criteria are met [H2, H3]
+HCA3: ENGAGE provided at wrong timing — after friendly entry [H1]
+HCA4: ENGAGE provided for wrong duration — beyond neutralization [H1]</code>
+
+<b>5. Loss Scenarios (LS-statements)</b> — The adversary chain. Each scenario traces: attacker action → HCA triggered → hazard → loss. References parent HCAs and hazards:
+<code style="display:block;background:#F0F5FA;border:1px solid #C5D8EE;border-radius:4px;padding:8px 12px;margin:6px 0;font-size:12px;color:#1A2332;line-height:1.8">LS1: Attacker injects malicious ENGAGE command via compromised C2 
+     when friendly forces are in the denial zone [HCA1, H1, H2 → L1]
+LS2: Attacker plants logic bomb suppressing HALT relay after operator 
+     issues stop command during friendly force movement [HCA2, H2 → L1]</code>
+
+The bracket notation <code style="background:#F0F5FA;padding:1px 5px;border-radius:3px;font-size:12px">[HCA1, H2, H3]</code> is how you trace the analysis — each element points back to its parents so the full chain is auditable.`,
+      think: `Look at the AI's output. Pick one Loss Scenario and trace it backwards: LS → HCA → Hazard → Loss. Does each element reference its parent correctly? Now rewrite LS-1 in your own words using the pattern: "An attacker [action] causing [HCA] when [condition], leading to [hazard] and ultimately [loss]."`,
       svg: "stpa_chain",
     },
     diagrams: {
@@ -1619,15 +1717,46 @@ export default function MBSEBuilder() {
     },
     req: {
       bloom: "evaluate",
-      title: "From analysis to contract — security requirements",
-      body: `Security requirements are how STPA-Sec analysis becomes <b>contractually enforceable</b>. Under DoDI 5000.90 and SEP Section 3.2.11, these SHALL statements go into the System Requirements Document (SRD) and the contractor's SOW. Each requirement traces to a NIST 800-53 control and a DoDI reference — that's the traceability chain from engineering analysis to acquisition policy. <b>A good requirement is specific, verifiable, and technically grounded</b>: not "the system shall be secure," but "the system SHALL authenticate every ENGAGE command using mutual TLS with ECDSA-signed tokens, rejecting any unsigned command with an operator alert."`,
-      think: `Choose one requirement from this list. Rewrite it in your own words — make it more specific if you can. Then identify: (1) how you would verify it in a test event, and (2) which specific STPA-Sec hazard it directly mitigates.`,
+      title: "From analysis to contract — security and resilience requirements",
+      body: `Security requirements are how STPA-Sec analysis becomes <b>contractually enforceable</b>. Under DoDI 5000.90 and SEP Section 3.2.11, these SHALL statements go into the System Requirements Document (SRD) and the contractor's SOW. Each requirement traces to a NIST 800-53 control and a DoDI reference.
+
+<b>Two types of requirements emerge from CRRM:</b>
+
+<b>1. Assurance Case-based requirements</b> (reduce likelihood):
+<code style="display:block;background:#F0F5FA;border:1px solid #C5D8EE;border-radius:4px;padding:8px 10px;margin:6px 0;font-size:12px;color:#1A2332;line-height:1.7">The system SHALL authenticate every ENGAGE command using mutual TLS 
+with ECDSA-signed tokens, rejecting any unsigned command with an 
+operator alert. [IA-3, SC-8] [DoDI 8500.01 §3.2]</code>
+
+<b>2. Resilience-based requirements</b> (from Module 7 pattern — reduce consequence):
+<code style="display:block;background:#F0F5FA;border:1px solid #C5D8EE;border-radius:4px;padding:8px 10px;margin:6px 0;font-size:12px;color:#1A2332;line-height:1.7">When [sentinel condition is detected], the system shall [resilient action]
+within [threshold], while maintaining [mission measure], and shall 
+produce [verification evidence].</code>
+
+<b>A good requirement is specific, verifiable, and technically grounded.</b> Not "the system shall be secure" — but a testable, traceable claim. Requirements must flow to contractors via SOW, be verified at design reviews and test events, and sustained across the lifecycle.`,
+      think: `Choose one requirement from this list. Rewrite it in your own words — make it more specific. Then identify: (1) how you would verify it in a test event, (2) which STPA-Sec hazard it directly mitigates, and (3) is it an Assurance Case-based requirement (reduces likelihood) or a Resilience requirement (reduces consequence)?`,
     },
     coa: {
       bloom: "evaluate",
-      title: "Courses of action — SCRE resilience techniques",
-      body: `COAs in SCRE aren't just mitigations — they're <b>resilience techniques</b> from the FOREST framework: Sense → Isolate → Options → Evaluate → Readiness → Execute → Self-test. The Sentinel Pattern (Module 4) is a mission-aware detection system that monitors the control structure for anomalous HCAs. When you evaluate COAs, ask two questions: does this <b>reduce the likelihood</b> of the loss scenario (Assurance Case approach), or does it <b>reduce the consequence</b> once an HCA occurs (Sentinel/FOREST approach)? The strongest defenses address both.`,
-      think: `Which COA from this list would have the most impact on Loss Scenario LS-1 in this analysis? What single acquisition constraint — cost, schedule, or technical maturity — would be most likely to prevent you from implementing it under an MTA rapid acquisition program?`,
+      title: "Courses of action — three routes to a defensible recommendation",
+      body: `COAs in SCRE aren't just mitigations — they're structured decisions. Module 7 formalizes this as a <b>three-route framework</b> for every loss scenario:
+
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0">
+  <div style="background:#EEF5F0;border:1px solid #BDD9C5;border-radius:4px;padding:8px 10px">
+    <div style="font-weight:700;color:#3A6B48;font-size:11px;margin-bottom:4px">🛡 RESILIENCY TECHNIQUE</div>
+    <div style="font-size:12px;color:#1A2332">Reduce impact · Restore function · Alternate path<br/><em>FOREST: sense/isolate/options/evaluate/readiness/execute/self-test</em></div>
+  </div>
+  <div style="background:#F3EEF8;border:1px solid #D9C5EE;border-radius:4px;padding:8px 10px">
+    <div style="font-weight:700;color:#5B3480;font-size:11px;margin-bottom:4px">📋 ASSURANCE CASE</div>
+    <div style="font-size:12px;color:#1A2332">Strengthen evidence · Controls · Verification<br/><em>Claim→Evidence→Argument→SHALL reduces LS likelihood</em></div>
+  </div>
+  <div style="background:#F7F8FA;border:1px solid #D0DDE8;border-radius:4px;padding:8px 10px">
+    <div style="font-weight:700;color:#4A5E72;font-size:11px;margin-bottom:4px">⚖ ACCEPT RISK</div>
+    <div style="font-size:12px;color:#1A2332">State rationale · Conditions · Follow-up<br/><em>Defensible: owner + action + boundary conditions</em></div>
+  </div>
+</div>
+
+<b>Key distinction:</b> Resiliency Techniques (FOREST/Sentinel) reduce <em>consequence</em> once an HCA occurs. Assurance Cases reduce <em>likelihood</em> of the HCA occurring at all. The strongest programs address both. The Sentinel Pattern (Module 4) is a mission-aware detection system — it monitors the control structure for anomalous HCAs and triggers a viable <b>resilient mode</b> that preserves the mission.`,
+      think: `For Loss Scenario LS-1 in this analysis: apply the three-route framework. Which route gives the highest risk reduction? Which is most feasible given the acquisition constraints (MTA timeline, budget, schedule)? What single acquisition constraint would prevent your preferred route — and what would you tell the PM?`,
     },
     assurance: {
       bloom: "evaluate",
@@ -1668,7 +1797,34 @@ export default function MBSEBuilder() {
     "STPA-Sec": () => studentRenderTab("stpa", (() => {
       if (!parsed||parsed.error) return <PH t="Generate a scenario first" />;
       if (!parsed.stpa||parsed.stpa==="SKIP") return <PH t="STPA-Sec not selected" />;
-      return <pre className="s-pre">{parsed.stpa}</pre>;
+      return (
+        <div>
+          <pre className="s-pre">{parsed.stpa}</pre>
+          <div style={{marginTop:20,background:"#F7F8FA",border:"1px solid #D0DDE8",borderRadius:6,padding:"14px 16px"}}>
+            <div style={{fontSize:11,fontWeight:700,color:"#2C5F8A",letterSpacing:".06em",textTransform:"uppercase",marginBottom:10}}>
+              ✓ Validate Your Output — Quality Checklist
+            </div>
+            <div style={{fontSize:13,color:"#1A2332",lineHeight:2}}>
+              {[
+                ["Losses", "Does each L-statement describe an unacceptable mission or human outcome — not a technical failure or a requirement?"],
+                ["Hazards", "Does each hazard describe a system STATE (not an event), and does it reference its parent losses in brackets like [L1, L2]?"],
+                ["HCAs", "Does each HCA name the specific controller, the specific control action, and the wrong condition under which it's hazardous?"],
+                ["HCA types", "Are all 4 types covered for each control action? (1) Provided when shouldn't. (2) Not provided when should. (3) Wrong timing. (4) Wrong duration."],
+                ["Loss Scenarios", "Does each LS trace a specific adversary action → HCA → hazard → loss? Does it reference parent HCAs and hazards in brackets?"],
+                ["Traceability", "Can you follow the chain backwards from any Loss Scenario all the way to a Loss? If a link breaks, the analysis has a gap."],
+              ].map(([label, q], i) => (
+                <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",padding:"4px 0",borderBottom:i<5?"1px solid #E8EFF5":"none"}}>
+                  <input type="checkbox" style={{marginTop:3,flexShrink:0,accentColor:"#2C5F8A"}} />
+                  <div><span style={{fontWeight:600,color:"#2C5F8A"}}>{label}: </span>{q}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{marginTop:10,fontSize:11,color:"#7EA8C4",fontStyle:"italic"}}>
+              These are the same quality criteria used in real DoD STPA-Sec reviews. Mark each one before submitting your analysis.
+            </div>
+          </div>
+        </div>
+      );
     })()),
     "Assurance Cases": () => studentRenderTab("assurance", (() => {
       if (!parsed||parsed.error) return <PH t="Generate a scenario first" />;
@@ -1676,9 +1832,32 @@ export default function MBSEBuilder() {
       return (
         <div>
           <div style={{background:"#F3EEF8",border:"1px solid #D9C5EE",borderRadius:5,padding:"8px 14px",marginBottom:14,fontSize:13,color:"#5B3480",lineHeight:1.7}}>
-            Each Assurance Case follows the CRRM structure: <b>Claim → Evidence → Argument → SHALL Requirement</b>. Together they close the loop from STPA-Sec analysis to contractually enforceable security requirements.
+            Each Assurance Case follows the CRRM structure: <b>Claim → Evidence → Argument → SHALL Requirement</b>. Each case reduces the likelihood of one specific Loss Scenario identified in the STPA-Sec analysis.
           </div>
           <pre className="s-pre">{parsed.assurance}</pre>
+          <div style={{marginTop:20,background:"#F7F8FA",border:"1px solid #D0DDE8",borderRadius:6,padding:"14px 16px"}}>
+            <div style={{fontSize:11,fontWeight:700,color:"#5B3480",letterSpacing:".06em",textTransform:"uppercase",marginBottom:10}}>
+              ✓ Validate Your Assurance Cases — Government LSE Checklist
+            </div>
+            <div style={{fontSize:13,color:"#1A2332",lineHeight:2}}>
+              {[
+                ["Claim", "Is the Claim a specific, verifiable security property — not a general goal? Could a test event prove or disprove it?"],
+                ["Evidence", "Is each Evidence item something that can actually be produced? (Test report, inspection record, analysis document — not 'we plan to test this.')"],
+                ["Argument", "Does the Argument logically connect the Evidence to the Claim? Does it explain WHY the evidence supports the claim, not just that it does?"],
+                ["SHALL Requirement", "Is the SHALL requirement specific, testable, and traceable to both a NIST 800-53 control and a DoDI reference?"],
+                ["Loss Scenario link", "Does each Assurance Case clearly identify which Loss Scenario it mitigates, and does that LS appear in the STPA-Sec analysis?"],
+                ["Completeness", "Under DoDI 5000.80 (MTA), can this Assurance Case be verified at a milestone review by the Government LSE? Would you approve it?"],
+              ].map(([label, q], i) => (
+                <div key={i} style={{display:"flex",gap:10,alignItems:"flex-start",padding:"4px 0",borderBottom:i<5?"1px solid #E8EFF5":"none"}}>
+                  <input type="checkbox" style={{marginTop:3,flexShrink:0,accentColor:"#5B3480"}} />
+                  <div><span style={{fontWeight:600,color:"#5B3480"}}>{label}: </span>{q}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{marginTop:10,fontSize:11,color:"#7EA8C4",fontStyle:"italic"}}>
+              Per Module 6 ELO.15.E: "The student will summarize and discuss adversity-related technical data." This checklist operationalizes that ELO.
+            </div>
+          </div>
         </div>
       );
     })()),
