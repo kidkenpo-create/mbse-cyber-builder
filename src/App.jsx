@@ -919,6 +919,75 @@ const studentCss = `
 `;
 
 
+// ── Lightweight markdown renderer for student formatted output ────────────────
+function renderStpaMarkdown(text) {
+  if (!text) return null;
+  const lines = text.split('\n');
+  const out = [];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    // Section header: **1. LOSSES** or **LOSSES** or ### heading
+    if (/^\*\*\d+[\.\s]/.test(line) || /^###\s/.test(line) || /^\*\*[A-Z]/.test(line.trim())) {
+      const txt = line.trim().replace(/^\*\*|\*\*$/g,'').replace(/^###\s*/,'').trim();
+      out.push(<div key={`h${i}`} style={{fontFamily:"Georgia,serif",fontSize:15,fontWeight:700,color:"#1A2332",margin:"20px 0 8px",paddingBottom:5,borderBottom:"2px solid #2C5F8A"}}>{txt}</div>);
+      i++; continue;
+    }
+    // Table block
+    if (/^\|/.test(line)) {
+      const tbl = [];
+      while (i < lines.length && /^\|/.test(lines[i])) { tbl.push(lines[i]); i++; }
+      const [hdr,,,...dataRows] = tbl;
+      const hdrs = (hdr||'').split('|').map(c=>c.trim()).filter(Boolean);
+      const rows = (dataRows||[]).filter(r=>/\|/.test(r)&&!/^[\|\-\s:]+$/.test(r))
+        .map(r=>r.split('|').map(c=>c.trim()).filter(Boolean));
+      out.push(
+        <div key={`t${i}`} style={{overflowX:"auto",marginBottom:14}}>
+          <table className="s-table">
+            <thead><tr>{hdrs.map((h,j)=><th key={j}>{h}</th>)}</tr></thead>
+            <tbody>{rows.map((row,ri)=>(
+              <tr key={ri}>{row.map((cell,ci)=>(
+                <td key={ci} style={{fontSize:13,lineHeight:1.65}}>
+                  <span dangerouslySetInnerHTML={{__html:cell.replace(/\*\*(.*?)\*\*/g,'<b>$1</b>')}} />
+                </td>
+              ))}</tr>
+            ))}</tbody>
+          </table>
+        </div>
+      );
+      continue;
+    }
+    // Code fence
+    if (/^```/.test(line.trim())) {
+      const code = []; i++;
+      while (i < lines.length && !/^```/.test(lines[i].trim())) { code.push(lines[i]); i++; }
+      i++;
+      out.push(<pre key={`c${i}`} className="s-pre" style={{fontSize:12,marginBottom:12}}>{code.join('\n')}</pre>);
+      continue;
+    }
+    // Divider
+    if (/^---+$/.test(line.trim())) { out.push(<div key={`d${i}`} className="s-divider" style={{margin:"12px 0"}} />); i++; continue; }
+    // Empty line
+    if (!line.trim()) { out.push(<div key={`s${i}`} style={{height:5}} />); i++; continue; }
+    // Bold standalone line
+    if (/^\*\*[^*]+\*\*$/.test(line.trim())) {
+      out.push(<div key={`b${i}`} style={{fontWeight:700,color:"#2C5F8A",marginTop:10,marginBottom:3,fontSize:13,fontFamily:"Georgia,serif"}}>{line.trim().replace(/^\*\*|\*\*$/g,'')}</div>);
+      i++; continue;
+    }
+    // Plain / bullet
+    const isBullet = /^[-•]\s/.test(line);
+    const html = line.replace(/^[-•]\s+/,'').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>');
+    out.push(
+      <div key={`p${i}`} style={{fontSize:13,color:"#1A2332",lineHeight:1.75,marginBottom:2,paddingLeft:isBullet?14:0,position:isBullet?"relative":undefined}}>
+        {isBullet && <span style={{position:"absolute",left:0,color:"#2C5F8A"}}>·</span>}
+        <span dangerouslySetInnerHTML={{__html:html}} />
+      </div>
+    );
+    i++;
+  }
+  return out;
+}
+
 // SVG concept diagrams grounded in CYB-5620V slides
 const SVG_CRRM = `<svg class="concept-diagram" viewBox="0 0 660 120" xmlns="http://www.w3.org/2000/svg" font-family="Inter,sans-serif">
   <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#2C5F8A"/></marker></defs>
@@ -1799,7 +1868,10 @@ produce [verification evidence].</code>
       if (!parsed.stpa||parsed.stpa==="SKIP") return <PH t="STPA-Sec not selected" />;
       return (
         <div>
-          <pre className="s-pre">{parsed.stpa}</pre>
+          <div style={{background:"#E8F0F7",border:"1px solid #C5D8EE",borderRadius:5,padding:"6px 12px",marginBottom:14,fontSize:12,color:"#2C5F8A",fontStyle:"italic"}}>
+            {mod.fullLabel} · CRRM Hazard Analysis
+          </div>
+          {renderStpaMarkdown(parsed.stpa)}
           <div style={{marginTop:20,background:"#F7F8FA",border:"1px solid #D0DDE8",borderRadius:6,padding:"14px 16px"}}>
             <div style={{fontSize:11,fontWeight:700,color:"#2C5F8A",letterSpacing:".06em",textTransform:"uppercase",marginBottom:10}}>
               ✓ Validate Your Output — Quality Checklist
@@ -1834,7 +1906,7 @@ produce [verification evidence].</code>
           <div style={{background:"#F3EEF8",border:"1px solid #D9C5EE",borderRadius:5,padding:"8px 14px",marginBottom:14,fontSize:13,color:"#5B3480",lineHeight:1.7}}>
             Each Assurance Case follows the CRRM structure: <b>Claim → Evidence → Argument → SHALL Requirement</b>. Each case reduces the likelihood of one specific Loss Scenario identified in the STPA-Sec analysis.
           </div>
-          <pre className="s-pre">{parsed.assurance}</pre>
+          {renderStpaMarkdown(parsed.assurance)}
           <div style={{marginTop:20,background:"#F7F8FA",border:"1px solid #D0DDE8",borderRadius:6,padding:"14px 16px"}}>
             <div style={{fontSize:11,fontWeight:700,color:"#5B3480",letterSpacing:".06em",textTransform:"uppercase",marginBottom:10}}>
               ✓ Validate Your Assurance Cases — Government LSE Checklist
@@ -1897,12 +1969,26 @@ produce [verification evidence].</code>
     "Requirements": () => studentRenderTab("req", (() => {
       if (!parsed||parsed.error) return <PH t="Generate a scenario first" />;
       if (!parsed.req||parsed.req==="SKIP") return <PH t="Requirements not selected" />;
-      return <pre className="s-pre">{parsed.req}</pre>;
+      return (
+        <div>
+          <div style={{background:"#E8F0F7",border:"1px solid #C5D8EE",borderRadius:5,padding:"6px 12px",marginBottom:14,fontSize:12,color:"#2C5F8A",fontStyle:"italic"}}>
+            {mod.fullLabel} · Security &amp; Resilience Requirements
+          </div>
+          {renderStpaMarkdown(parsed.req)}
+        </div>
+      );
     })()),
     "Courses of Action": () => studentRenderTab("coa", (() => {
       if (!parsed||parsed.error) return <PH t="Generate a scenario first" />;
       if (!parsed.coa||parsed.coa==="SKIP") return <PH t="Courses of Action not selected" />;
-      return <pre className="s-pre">{parsed.coa}</pre>;
+      return (
+        <div>
+          <div style={{background:"#EEF5F0",border:"1px solid #BDD9C5",borderRadius:5,padding:"6px 12px",marginBottom:14,fontSize:12,color:"#3A6B48",fontStyle:"italic"}}>
+            {mod.fullLabel} · Courses of Action — FOREST / Sentinel / Three-Route Framework
+          </div>
+          {renderStpaMarkdown(parsed.coa)}
+        </div>
+      );
     })()),
     "Raw": () => <div className="s-tab-content"><pre className="s-pre" style={{maxHeight:"50vh",overflowY:"auto"}}>{raw||"Raw output will appear here"}</pre></div>,
   };
